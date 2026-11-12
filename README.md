@@ -1,38 +1,42 @@
-# CMOC C Library support for OS-9/NitrOS-9
+# C Library support for OS-9/NitrOS-9
 
-CMOC is an excellent ANSI C cross-compiler by Pierre Sarrazin. It supports the creation of OS-9 executables, which needs a complete C library. [Download CMOC here](https://perso.b2b2c.ca/~sarrazip/dev/cmoc.html).
+This project provides C libraries for CMOC and LLVM targeting OS-9/NitrOS-9
+on the MC6809. The C library is based on the Kreider C library; the CMOC
+CGFX library is based on Mike Sweet's CGFX7 library.
 
-This project aims to deliver two libraries: the standard C library (libc.a) and the CGFX library (libcgfx.a).
+| Toolchain | Libraries | Build |
+| --- | --- | --- |
+| CMOC | `libc.a`, floating-point `libcf.a`, and `libcgfx.a` | `make libs` |
+| LLVM with picolibc | `libcmoc_os9_compat.a` and optional `libcmoc_os9_float.a` | `make -C llvm` |
 
-The code for the standard C library is based off of the Kreider C library.
+[CMOC](https://perso.b2b2c.ca/~sarrazip/dev/cmoc.html) is Pierre Sarrazin's
+ANSI C cross-compiler. The LLVM port uses the MC6809 LLVM toolchain and an
+OS-9 picolibc sysroot, with native implementations of the Kreider and OS-9
+extensions. See [Building with LLVM](#building-with-llvm) below.
 
-Likewise, the code for the CGFX library is based off of Mike Sweet's CGFX7 library.
+## Building with CMOC
 
-## Building
-
-You will need LWTOOLS and ToolShed to build this library.
+You will need CMOC, LWTOOLS, and ToolShed to build the libraries and programs.
+Run the following commands from the repository root.
 
 To make both the default non-floating-point `libc.a` and the floating-point
 `libcf.a` C libraries, type:
 
 ```
-cd cmoc_os9
-cd lib; make clean all
-cd ../cgfx; make
+make -C lib clean all
+make -C cgfx
 ```
 
 To make just the default non-floating-point `libc.a`, type:
 
 ```
-cd cmoc_os9
-cd lib; make clean libc.a
+make -C lib clean libc.a
 ```
 
 To make just the floating-point `libcf.a`, type:
 
 ```
-cd cmoc_os9
-cd lib; make clean libcf.a
+make -C lib clean libcf.a
 ```
 
 The default `libc.a` build uses a small dummy `pffloat` implementation so the
@@ -47,7 +51,7 @@ make dsk
 ```
 
 This will create a disk image called `l2_coco3_cmoc_os9.dsk` under
-`recipes/coco3/`. The recipe uses the local `cmoc_os9` sources and a
+`recipes/coco3/`. The recipe uses the local repository sources and a
 nearby NitrOS-9 checkout for OS modules, commands, libraries, and disk tools.
 Set `NITROS9DIR` if your NitrOS-9 checkout is not a sibling of this repository.
 
@@ -134,12 +138,60 @@ While passing parameters by reference may be a bit more typing, this is arguably
 The core library is already usable, but it is not yet a complete port of all
 historical Kreider and CGFX components.
 
-## LLVM with picolibc
+## Building with LLVM
 
-The `llvm-os9` branch also provides an LLVM-native Kreider compatibility
-library alongside picolibc, covering all 280 callable declarations in the active
-C library headers. It includes native OS-9 extensions, IEEE float/double math,
-and an optional floating stdio profile. Build with `make -C llvm`; run host tests
-with `make -C llvm test`. See [llvm/README.md](llvm/README.md) for toolchain and
-sysroot settings, API differences, OS-9 smoke tests and UUCPbb integration.
-The CMOC library and CGFX builds above are independent.
+The `llvm/` directory provides an LLVM-native compatibility library alongside
+picolibc, covering all 280 callable declarations in the active C library
+headers. It includes OS-9 extensions, IEEE float/double math, numeric conversion,
+and an optional floating stdio profile. CGFX remains CMOC-only.
+
+You need a Clang build supporting `mc6809-unknown-os9`, LLVM archive/link tools,
+and an installed OS-9 picolibc sysroot. Set the toolchain and sysroot paths for
+an independent checkout:
+
+```sh
+make -C llvm -j4 \
+  LLVM_BIN=/path/to/llvm-mc6809/build/bin \
+  OS9_SYSROOT=/path/to/picolibc/builddir-mc6809-os9-Os/stage/usr/local
+```
+
+Alternatively, set `PROJECTS=/path/to/projects` when `llvm-mc6809` and
+`picolibc` are under that directory. Outputs go in `llvm/out/Os/`; use `OPT=Oz`
+for a separate size-optimized build.
+
+New code includes `cmoc_os9.h`. Existing Kreider code can force-include
+`cmoc_os9_legacy.h` when compiling:
+
+```sh
+/path/to/llvm-mc6809/build/bin/clang --target=mc6809-unknown-os9 \
+  --sysroot=/path/to/picolibc/builddir-mc6809-os9-Os/stage/usr/local \
+  -Os -Illvm/include -include llvm/include/cmoc_os9_legacy.h program.c \
+  llvm/out/Os/libcmoc_os9_compat.a -o program
+```
+
+For floating `printf` output, place `llvm/out/Os/libcmoc_os9_float.a` before
+`libcmoc_os9_compat.a` in the link command. LLVM programs use native picolibc
+types and the LLVM calling convention; do not link the CMOC archives or add
+the original CMOC `include/` directory to their include path.
+
+Run the seven host test suites and cross-build checks from the repository root:
+
+```sh
+make -C llvm test
+make -C llvm -j4 audit link-check smoke PROJECTS=/path/to/projects
+```
+
+The cross-build checks audit API coverage, link each callable archive symbol
+with its dependencies, and validate two OS-9 smoke modules. They do not execute
+the modules. Runtime validation requires ToolShed `os9`, `usim09pt`, and matching
+NitrOS-9 boot and firmware images:
+
+```sh
+NITROS9_BOOT_DSK=/path/to/boot.dsk NITROS9_FIRMWARE=/path/to/firmware.srec \
+  make -C llvm run-smoke PROJECTS=/path/to/projects
+```
+
+Cross compilation, host tests, API coverage, linkage, and module structure have
+been verified; execution on an OS-9 kernel remains unverified. See
+[llvm/README.md](llvm/README.md) for ABI differences, runner settings, licensing,
+and UUCPbb integration.
