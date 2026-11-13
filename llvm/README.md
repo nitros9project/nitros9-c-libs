@@ -16,7 +16,19 @@ OS-9 sysroot. Existing CMOC `lib/` and `cgfx/` builds remain available.
 ## Build and use
 
 The default paths assume `cmoc_os9`, `llvm-mc6809`, and `picolibc` are siblings.
-The sysroot must be the OS-9 picolibc build, not the bare-metal build.
+The sysroot must be an installed OS-9 picolibc build, not the bare-metal build.
+After building picolibc, run this from its checkout:
+
+```sh
+meson install -C builddir-mc6809-os9-Os --destdir stage --no-rebuild
+```
+
+The default sysroot assumes Meson's `/usr/local` prefix. For another prefix,
+set `OS9_SYSROOT` to `builddir-mc6809-os9-Os/stage/<prefix>` in the picolibc
+checkout, omitting the prefix's leading `/` (for example, `stage/opt/homebrew`).
+See the main [LLVM build instructions](../README.md#building-with-llvm) for
+exported toolchain/sysroot paths and a complete runtime setup example.
+`make -C llvm test` needs only the host C compiler, not the cross toolchain.
 
 ```sh
 make -C llvm -j4
@@ -123,15 +135,31 @@ strings/sets/CRC/calendar operations, float/double math, password/module/heap
 services, signals, and process/pipe behavior. They use mock kernel services.
 `smoke` builds real OS-9 identity/I/O and floating-conversion/stdio modules.
 
+`OS9_RUNNER` defaults to `$(PROJECTS)/picolibc/scripts/run-mc6809-os9`.
+For an independent checkout, override it as below. The runner needs ToolShed
+`os9` on `PATH` and `usim09pt` on `PATH` or at `NITROS9_USIM09PT`.
+`NITROS9_BOOT_DSK` must name a Pico-Thing flat IDE boot image with a `/J0`
+descriptor, and `NITROS9_FIRMWARE` its `rel_picothing.srec`. Alternatively,
+`NITROS9_RECIPES` can name the NitrOS-9 `recipes/picothing` directory; the
+runner finds both artifacts for the selected recipe (`NITROS9_LEVEL=2` by
+default).
+
+`floatsmoke` requires `MC6809_FP_MODULE` to name clang's
+`lib/clang/<version>/lib/mc6809-unknown-os9/FPO9`. With `LLVM_BIN` exported as
+in the main README:
+
 ```sh
-make -C llvm run-smoke OS9_RUNNER=/path/to/picolibc/scripts/run-mc6809-os9
+export MC6809_FP_MODULE="$("$LLVM_BIN/clang" --target=mc6809-unknown-os9 -print-resource-dir)/lib/mc6809-unknown-os9/FPO9"
+NITROS9_BOOT_DSK=/path/to/boot.dsk \
+  NITROS9_FIRMWARE=/path/to/rel_picothing.srec \
+  make -C llvm run-smoke OS9_RUNNER=/path/to/picolibc/scripts/run-mc6809-os9
 ```
 
-The runner needs ToolShed `os9`, `usim09pt`, `NITROS9_BOOT_DSK`, and
-`NITROS9_FIRMWARE` (or recipe equivalents). No emulator/boot artifacts were
-available on the development host. Cross compilation, linkage, host behavior,
-and module structure are verified; execution on an OS-9 kernel remains a
-required validation step before treating the port as runtime-validated.
+Cross compilation, linkage, host behavior, and module structure are verified.
+[Mark Murray reported](https://github.com/nitros9project/nitros9-c-libs/pull/36#issuecomment-6833594213)
+that `os9smoke` (identity and readln) and `floatsmoke` both passed on NitrOS-9
+Level 2 for Pico-Thing under `usim09pt`, using picolibc's runner and supplying
+`FPO9` through `MC6809_FP_MODULE`.
 
 ## UUCPbb
 
