@@ -20,11 +20,10 @@ You will need CMOC, LWTOOLS, and ToolShed to build the libraries and programs.
 Run the following commands from the repository root.
 
 To make both the default non-floating-point `libc.a` and the floating-point
-`libcf.a` C libraries, type:
+`libcf.a` C libraries, plus `libcgfx.a`, type:
 
 ```
-make -C lib clean all
-make -C cgfx
+make libs
 ```
 
 To make just the default non-floating-point `libc.a`, type:
@@ -65,7 +64,7 @@ emulator and run under NitrOS-9. A convenient script named `go` is placed in
 the root folder of the disk. You can run this script to execute the
 non-graphical runtime and regression tests. The CoCo 3-specific graphics
 programs such as `wintest` and `maze` are built onto the disk as separate
-manual tests; both now live under `graphictest/` instead of `unittest/`.
+manual tests; both are under `graphictest/`.
 
 ## Differences from the original Microware C Library
 
@@ -146,25 +145,36 @@ headers. It includes OS-9 extensions, IEEE float/double math, numeric conversion
 and an optional floating stdio profile. CGFX remains CMOC-only.
 
 You need a Clang build supporting `mc6809-unknown-os9`, LLVM archive/link tools,
-and an installed OS-9 picolibc sysroot. Set the toolchain and sysroot paths for
-an independent checkout:
+and an installed OS-9 picolibc sysroot. After building picolibc, install it into
+its staging directory (run this from the picolibc checkout):
 
 ```sh
-make -C llvm -j4 \
-  LLVM_BIN=/path/to/llvm-mc6809/build/bin \
-  OS9_SYSROOT=/path/to/picolibc/builddir-mc6809-os9-Os/stage/usr/local
+meson install -C builddir-mc6809-os9-Os --destdir stage --no-rebuild
+```
+
+The installed path is `builddir-mc6809-os9-Os/stage/<prefix>`, where `<prefix>`
+is Meson's configured installation prefix without the leading `/`: `usr/local`
+for the default `/usr/local`, or `opt/homebrew` for `/opt/homebrew`.
+Set and export the paths for your checkouts, adjusting the prefix as needed;
+the remaining commands run from this repository's root:
+
+```sh
+export LLVM_BIN=/path/to/llvm-mc6809/build/bin
+export OS9_SYSROOT=/path/to/picolibc/builddir-mc6809-os9-Os/stage/usr/local
+make -C llvm -j4
 ```
 
 Alternatively, set `PROJECTS=/path/to/projects` when `llvm-mc6809` and
-`picolibc` are under that directory. Outputs go in `llvm/out/Os/`; use `OPT=Oz`
-for a separate size-optimized build.
+`picolibc` are under that directory; its default sysroot assumes the
+`/usr/local` prefix, so override `OS9_SYSROOT` for another prefix.
+Outputs go in `llvm/out/Os/`; use `OPT=Oz` for a separate size-optimized build.
 
 New code includes `cmoc_os9.h`. Existing Kreider code can force-include
 `cmoc_os9_legacy.h` when compiling:
 
 ```sh
-/path/to/llvm-mc6809/build/bin/clang --target=mc6809-unknown-os9 \
-  --sysroot=/path/to/picolibc/builddir-mc6809-os9-Os/stage/usr/local \
+"$LLVM_BIN/clang" --target=mc6809-unknown-os9 \
+  --sysroot="$OS9_SYSROOT" \
   -Os -Illvm/include -include llvm/include/cmoc_os9_legacy.h program.c \
   llvm/out/Os/libcmoc_os9_compat.a -o program
 ```
@@ -174,24 +184,40 @@ For floating `printf` output, place `llvm/out/Os/libcmoc_os9_float.a` before
 types and the LLVM calling convention; do not link the CMOC archives or add
 the original CMOC `include/` directory to their include path.
 
-Run the seven host test suites and cross-build checks from the repository root:
+Run the seven host test suites and cross-build checks from the repository root.
+`test` needs only a host C compiler (`HOST_CC`, default `/usr/bin/clang`); the
+cross-build checks use the exported toolchain and sysroot paths:
 
 ```sh
 make -C llvm test
-make -C llvm -j4 audit link-check smoke PROJECTS=/path/to/projects
+make -C llvm -j4 audit link-check smoke
 ```
 
 The cross-build checks audit API coverage, link each callable archive symbol
 with its dependencies, and validate two OS-9 smoke modules. They do not execute
-the modules. Runtime validation requires ToolShed `os9`, `usim09pt`, and matching
-NitrOS-9 boot and firmware images:
+the modules. Runtime validation uses picolibc's `scripts/run-mc6809-os9`;
+set `OS9_RUNNER` to that script for an independent checkout. It needs ToolShed
+`os9` on `PATH` and `usim09pt` on `PATH` (or set `NITROS9_USIM09PT` to the
+emulator executable). Supply a Pico-Thing flat IDE boot image with a `/J0`
+descriptor and its `rel_picothing.srec` firmware through `NITROS9_BOOT_DSK`
+and `NITROS9_FIRMWARE`. Alternatively, set `NITROS9_RECIPES` to the NitrOS-9
+`recipes/picothing` directory; the runner discovers both artifacts from the
+selected recipe (`NITROS9_LEVEL=2` by default).
+
+`floatsmoke` also requires clang's `FPO9` floating-point module. Set
+`MC6809_FP_MODULE` to `lib/clang/<version>/lib/mc6809-unknown-os9/FPO9` in the
+LLVM build; `-print-resource-dir` locates the versioned directory:
 
 ```sh
-NITROS9_BOOT_DSK=/path/to/boot.dsk NITROS9_FIRMWARE=/path/to/firmware.srec \
-  make -C llvm run-smoke PROJECTS=/path/to/projects
+export MC6809_FP_MODULE="$("$LLVM_BIN/clang" --target=mc6809-unknown-os9 -print-resource-dir)/lib/mc6809-unknown-os9/FPO9"
+NITROS9_BOOT_DSK=/path/to/boot.dsk \
+  NITROS9_FIRMWARE=/path/to/rel_picothing.srec \
+  make -C llvm run-smoke OS9_RUNNER=/path/to/picolibc/scripts/run-mc6809-os9
 ```
 
 Cross compilation, host tests, API coverage, linkage, and module structure have
-been verified; execution on an OS-9 kernel remains unverified. See
-[llvm/README.md](llvm/README.md) for ABI differences, runner settings, licensing,
-and UUCPbb integration.
+been verified. [Mark Murray reported](https://github.com/nitros9project/nitros9-c-libs/pull/36#issuecomment-6833594213)
+that both `os9smoke` (identity and readln) and `floatsmoke` passed on NitrOS-9
+Level 2 for Pico-Thing under `usim09pt`, with `FPO9` supplied through
+`MC6809_FP_MODULE`. See [llvm/README.md](llvm/README.md) for ABI differences,
+runner settings, licensing, and UUCPbb integration.
