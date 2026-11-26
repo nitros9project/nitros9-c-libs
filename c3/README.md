@@ -50,7 +50,8 @@ linker references; the split adds no executable instructions.
 C3's 8-character symbol limit requires generated aliases for colliding long API
 names. Use headers and objects from the same library revision. C3's header view
 exposes signal handler results/constants as opaque words because its parser cannot
-declare a function returning a function-pointer typedef; the native ABI is unchanged. Its signed-byte
+declare a function returning a function-pointer typedef; the native ABI is unchanged. The view omits the nonstandard stdio TRUE/FALSE
+macros so existing C3 programs can define them without preprocessor diagnostics. Its signed-byte
 and signed-long restrictions require explicit byte masks and word-based unsigned
 conversion arithmetic in the shared C sources. There is no second set of C bodies.
 
