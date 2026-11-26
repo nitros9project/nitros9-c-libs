@@ -202,8 +202,7 @@ switch 	cmpb    #'c'            char
 		lbra    L0047           default -- just print
 
 * print a float
-case_f 	ldd     fldsiz+2,s 
-		leax    prtvar+2,s 
+case_f 	leax    prtvar+2,s
 		ldd     fraccnt+2,s 
 		tst     fracflg+2,s 
 		bne     case_f1 
@@ -213,13 +212,11 @@ case_f1 pshs    x               stack *variable
 		ldb     -1,u 
 		clra   
 		pshs    d 
-		lbsr    _pffloat
-		leas    6,s 
-		tfr     d,x
 		clrb
 		lda     #$7D
-		std     fraccnt+2,s
-		tfr     x,d
+		std     fraccnt+8,s     reset after staging all three arguments
+		lbsr    _pffloat
+		leas    6,s
 		tfr     d,u
 		lbra    case_x8 
 

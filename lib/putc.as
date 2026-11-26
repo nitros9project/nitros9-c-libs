@@ -1,7 +1,7 @@
 _putc               EXPORT    ;         export buffered/unbuffered character output
 
-__os_write          EXTERNAL  ;         low-level write wrapper
-__os_writeln        EXTERNAL  ;         low-level writeln wrapper
+_write          EXTERNAL  ;         low-level write wrapper
+_writeln        EXTERNAL  ;         low-level writeln wrapper
 _setbase            EXTERNAL  ;         stdio buffer initializer
 _flush              EXTERNAL  ;         internal stdio flush helper
 
@@ -34,19 +34,17 @@ inited              ldd       6,u       ; reload FILE flags after possible initi
                     beq       buffered  ; branch if buffered output is allowed
                     ldd       #1        ; write exactly one byte for unbuffered stream
                     pshs      d         ; push count value
-                    leax      ,s        ; point X at count slot for low-level API
-                    pshs      x         ; push pointer to count
-                    leax      stk_putc_char_byte+6,s ; point X at character byte after staged count/pointer
+                    leax      stk_putc_char_byte+4,s ; saved U and count shift character byte by four
                     ldd       8,u       ; load underlying path number
                     pshs      d,x       ; push path and data pointer
                     ldb       7,u       ; load low byte of FILE flags
                     andb      #_SCF     ; test whether device is SCF
                     beq       unbuf_write_block ; plain block write for non-SCF devices
-                    lbsr      __os_writeln ; SCF output wants line semantics
+                    lbsr      _writeln ; SCF output wants line semantics
                     bra       unbuf_write_done ; share post-write result handling
-unbuf_write_block   lbsr      __os_write ; perform raw byte write
-unbuf_write_done    leas      8,s       ; discard stacked write arguments
-                    cmpd      #0        ; low-level wrappers return zero on success
+unbuf_write_block   lbsr      _write ; perform raw byte write
+unbuf_write_done    leas      6,s       ; discard stacked write arguments
+                    cmpd      #1        ; traditional writes return actual byte count
                     beq       putc_success ; return written character on success
                     ldb       7,u       ; reload low byte of FILE flags
                     orb       #_ERR     ; mark stream as having encountered an error

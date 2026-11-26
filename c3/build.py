@@ -9,6 +9,7 @@ import subprocess
 
 from native_sources import c_view, interfaces, write_headers
 from native_asm import lower
+from private_stdio import select as select_private_stdio
 from split_code import split as split_code
 from profiles import select as select_profile
 from native_calls import lower as lower_calls
@@ -51,6 +52,21 @@ def adapt_data(text, name, backend):
     return pattern.sub(replace,text)
 
 
+
+def optimize_rma(rma, name, optimizer):
+    # optx merges adjacent vsects, turning BSS into initialized zero images.
+    # A data-only unit has no instructions to optimize.
+    if not re.search(rb'(?m)^\s+ttl\s+',rma):return rma
+    if name=='ctypefn':
+        # Whole-unit tail merging makes otherwise independent APIs inseparable
+        # in the archive. Optimize each data-free leaf function in isolation.
+        if re.search(rb'(?m)^\s+vsect',rma):raise ValueError('ctypefn gained shared data')
+        pieces=re.split(rb'(?m)(?=^[ \t]+ttl[ \t]+)',rma)
+        prefix=pieces[0]
+        return b'\n'.join(run([optimizer],input=prefix+piece.removesuffix(b' endsect\n')+b' endsect\n') for piece in pieces[1:])
+    return run([optimizer],input=rma)
+
+
 def inline_assembly(text):
     """Extract CMOC's verbatim asm bodies; compile ordinary C with C3."""
     blocks=[]
@@ -76,7 +92,7 @@ def main():
     objects=[];reports={};assembly={};globals=set()
     for entry in modules:
         name=Path(entry).stem
-        if name in ('case','fcommon'):continue
+        if name in ('case','fcommon','rpterr'):continue
         source=next(ROOT/'lib'/(name+suffix) for suffix in ('.c','.as','.asm') if (ROOT/'lib'/(name+suffix)).exists())
         if source.suffix=='.c':
             content=source.read_text()
@@ -90,7 +106,7 @@ def main():
             if b'****' in rma:raise RuntimeError(rma.decode(errors='replace'))
             (out/(name+'.rma')).write_bytes(rma)
             globals.update(re.findall(r'(?m)^([A-Za-z_]\w*):',rma.decode()))
-            if name!='ctypefn':rma=run([c3/'build/unix/optx/c3optx'],input=rma)
+            rma=optimize_rma(rma,name,c3/'build/unix/optx/c3optx')
             native=run(['awk','-f',backend/'c3lw.awk'],input=rma).decode()
             if asm:
                 defines='\n'.join(line for line in source.read_text().splitlines() if line.startswith(('#if','#else','#endif','#define')))
@@ -111,10 +127,11 @@ def main():
         if asm:
             for label in readonly_labels:
                 asm=re.sub(r'\b'+re.escape(label)+r'([^,\n]*),pcr\b',label+r'\1,y',asm,flags=re.I)
-            explicit=name in ('utime','ltoa','dirseek','bsearch')
+            explicit=name in ('utime','ltoa','dirseek','bsearch','create')
             if not explicit:asm=select_long_returns(asm,name)
-            asm,report=lower(asm,{} if explicit or name in ('cfinish','printf','debug','stat') else {k:v for k,v in specs.items() if not (name=='fseek' and k=='_fseek')},name=name)
+            asm,report=lower(asm,{} if explicit or name in ('cfinish','printf','debug','stat') else {k:v for k,v in specs.items() if not (name=='fseek' and k in ('_fseek','_rewind'))},name=name)
             asm=select_profile(asm,name)
+            asm=select_private_stdio(asm,name)
             call_specs=dict(specs)
             call_specs.update({name:specs['_'+name] for name in ('toupper','tolower')})
             if explicit:calls=[]
@@ -132,7 +149,7 @@ def main():
         text=native+'\n'+asm
         text=re.sub(r'(?m)^[ \t]*leas[ \t]+\(([0-9]+)\)-([0-9]+),s[^\n]*$',lambda m:'' if m[1]==m[2] else m[0],text)
         (out/(name+'.s')).write_text(text)
-        pieces=split_code(text) if name in ('io','ctypefn') else [text]
+        pieces=split_code(text) if name in ('io','ctypefn','stat','syscommon') else [text]
         for index,piece in enumerate(pieces):
             stem=name+('_'+str(index) if len(pieces)>1 else '')
             target=out/(stem+'.s');target.write_text(piece)

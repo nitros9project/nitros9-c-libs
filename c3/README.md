@@ -21,7 +21,9 @@ C3-compatible view of the canonical headers. `out/BUILD.json` records compiler
 and source hashes; `out/abi-report.json` records assembly entry/call selection.
 `--out DIR` selects an isolated build directory for both scripts.
 
-The C3 optimizer is enabled for library C units. Stack-check calls are omitted
+The C3 optimizer is enabled for library C functions. Data-only units skip it to
+preserve BSS, and ctype leaves are optimized separately to prevent cross-function
+return merging from tying independent archive members together. Stack-check calls are omitted
 because the compiler's current cross-runtime stack checker is a no-op. The
 application optimizer setting remains independent of the library build.
 
@@ -37,10 +39,13 @@ emit runtime ABI trampolines, CMOC-compiled bodies, or extra public wrappers.
 implementations. They select argument placement, long returns, and math/callback
 contracts with `NITROS9_C3`; no C replacements are generated. The binary search
 fix uses the array base, balances callback arguments, and preserves U/Y.
+File creation and rewind also select register placement in the shared assembly.
 
-Private assembly helpers keep their own documented contracts. Independent
-routines in the low-level I/O and ctype units are separate archive members, so
-using one does not pull all their entry points into an application.
+Private stdio helpers use the FILE pointer already held in U in the C3 profile.
+The compiler CRT supplies `_flacc` and `_rpterr`; the archive supplies neither.
+Independent low-level I/O, status, status-return, and ctype bodies are separate
+archive members. Cross-member calls to existing private bodies become ordinary
+linker references; the split adds no executable instructions.
 
 C3's 8-character symbol limit requires generated aliases for colliding long API
 names. Use headers and objects from the same library revision. Its signed-byte
@@ -74,4 +79,5 @@ pass.
 
 The application comparison uses the separate 6809-c-benchmarks suite, with
 identical prepared application sources and compiler revision for the old and
-new libraries. See [SIZE-COMPARISON.md](SIZE-COMPARISON.md). Sizes are not identical.
+new libraries. See [SIZE-COMPARISON.md](SIZE-COMPARISON.md) and its reproducible
+`size_report.py` linker-map audit. The new modules are 28–140 bytes smaller; the report accounts for every byte.

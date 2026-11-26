@@ -397,7 +397,7 @@ them on the Pico-Thing kernel. The image must support `/dd/startup`. These tests
 are separate from CMOC's `unittest/` and recipe registration. Check both compiler
 profiles when changing shared bodies. Do not add C3 copies of library sources
 or runtime trampolines. Keep canonical assembly implementations in assembly;
-`utime`, `ltoa`, `dirseek`, and `bsearch` select their native ABI explicitly with
+`utime`, `ltoa`, `dirseek`, `bsearch`, and `create` select their native ABI explicitly with
 `NITROS9_C3` and bypass the automatic entry/call lowering passes. C3 compiler-owned
 startup/FP primitives are not libc.
 
@@ -406,3 +406,9 @@ arithmetic. Generated header/name views and shared word-based arithmetic handle
 those constraints; do not silently reinterpret unsigned arithmetic. API aliases,
 shared assembly exits, callback arguments, and initialized data need native tests.
 Application sizes are measured module lengths, not estimates or padded binaries.
+`c3/size_report.py` reconciles map sections to complete modules; keep
+`c3/SIZE-COMPARISON.md` and `c3/SIZE-ACCOUNTING.json` in sync when updating sizes.
+Private stdio helpers keep FILE in U for C3. Data-only C units bypass optx to avoid
+initializing BSS; ctype leaves are optimized separately to avoid merged returns.
+I/O, status, and status-return bodies split into independent archive members;
+existing private calls become normal linker references, without generated code.

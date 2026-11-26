@@ -18,8 +18,9 @@ def lower(text, specs, name):
         return i
     for i,x in enumerate(lines):
         if x.op not in ('bsr','lbsr','jsr') or x.operand not in specs:continue
+        if name=='fseek' and x.operand=='_fseek':continue  # explicit native rewind body
         if name=='setbase' and x.operand=='_getstat':continue
-        if name=='putc' and x.operand in ('__os_write','__os_writeln'):continue
+        if name=='putc' and x.operand in ('__os_write','__os_writeln','_write','_writeln'):continue
         if name=='getc' and x.operand in ('_read','_readln'):continue
         spec=specs[x.operand];args=arglist(spec['args'])
         if not args:continue
@@ -33,6 +34,8 @@ def lower(text, specs, name):
             k=previous(j)
             if lines[k].op=='leax' and '_flacc' in lines[k].operand:changes[k]=''
             changes[after]=emit(cleanup,operand='('+cleanup.operand.rsplit(',',1)[0]+')-4,s')
+            k=following(after)
+            if k<len(lines) and lines[k].op=='leax' and lines[k].operand=='_flacc,y':changes[k]=emit(lines[k],op='',operand='')
             report.append({'callee':x.operand,'line':i+1,'removed_argument_bytes':4})
             continue
         if long_result:
@@ -69,5 +72,8 @@ def lower(text, specs, name):
             changes[i]=(x.label+':' if x.label else '')+'\n\tldd\t,s\n\t'+x.op+'\t'+x.operand
         else:
             raise ValueError(name+': cached/multi-argument call needs native profile at '+str(i+1)+': '+x.operand)
+        if long_result:
+            k=following(after)
+            if k<len(lines) and lines[k].op=='leax' and lines[k].operand=='_flacc,y':changes[k]=emit(lines[k],op='',operand='')
         report.append({'callee':x.operand,'line':i+1,'removed_argument_bytes':removed})
     return '\n'.join(changes.get(i,x.raw) for i,x in enumerate(lines))+'\n',report

@@ -61,6 +61,11 @@ int main(void)
     check_true("stdioedgetest fgetc(injected)", fgetc(fp) == 'Z');
     check_true("stdioedgetest fgetc(after injected)", fgetc(fp) == 'a');
 
+    check_true("stdioedgetest fseek(end with unread input)", fseek(fp, -1L, SEEK_END) == 0L);
+    check_true("stdioedgetest fgetc(last byte)", fgetc(fp) == '\r');
+    rewind(fp);
+    check_true("stdioedgetest rewind(after end)", fgetc(fp) == 'a');
+
     fclose(fp);
     unlink(edge_file);
     return failed;

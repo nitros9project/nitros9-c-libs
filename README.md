@@ -34,6 +34,8 @@ archive is `c3/out/libc3.a`. C3's compiler-specific startup and floating arithme
 primitives remain owned by the compiler. `c3/test.py` stages those primitives
 without building or linking C3's old local C library. See [c3/README.md](c3/README.md)
 for kernel tests, ABI details, and the measured [application sizes](c3/SIZE-COMPARISON.md).
+The size report includes per-member linker-map accounting; `c3/size_report.py`
+checks that loaded sections plus header/name/CRC reconcile to the complete module.
 CGFX and the CMOC floating stdio archive are not C3 targets.
 
 ## Building with CMOC

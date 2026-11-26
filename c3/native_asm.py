@@ -219,6 +219,17 @@ def lower(text, specs, *, name='unit'):
             else:
                 changes[j]=label+'\n\tleas\t2,s\n\t'+x.op+'\t'+x.operand
         elif mode=='combined':
+            # Pointer-returning leaves often reload the saved first argument
+            # just to discard that same word into X. Return it with PULS D.
+            k=j-1
+            while k>=0 and (not lines[k].op or lines[k].op in DIRECTIVES):k-=1
+            load=lines[k]
+            match=re.fullmatch(r'([A-Za-z_]\w*)([+-]\d+)?,s',load.operand)
+            if discard=='x' and load.op=='ldd' and match and match[1] in parameters:
+                offset=parameters[match[1]][0]+int(match[2] or 0)
+                if offset==0:
+                    changes[k]=emit(load,op='',operand='')
+                    discard='d'
             mask=[r.strip().lower() for r in x.operand.split(',')] if x.op=='puls' else ['pc']
             if discard in mask:
                 raise ValueError(name+': combined exit already pops X at '+str(j+1))
