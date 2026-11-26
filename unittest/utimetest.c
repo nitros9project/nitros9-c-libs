@@ -54,7 +54,7 @@ void test_u2otime()
 	tmp.tm_min = p.minutes;
 	tmp.tm_hour = p.hours;
 	tmp.tm_mday = p.day;
-	tmp.tm_mon = p.month;
+	tmp.tm_mon = p.month - 1;
 	tmp.tm_year = p.year;
 
 	u2otime(&converted, &tmp);

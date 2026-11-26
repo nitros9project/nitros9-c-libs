@@ -164,4 +164,13 @@ _c:
         self.assertNotIn('two words',seen[0])
 
 
+    def test_separate_initialized_sections_have_distinct_image_names(self):
+        text=' section rwdata\na fdb 1\n endsect\n section rwdata\nb fdb 2\n endsect\n'
+        seen=[]
+        with patch('build.run',side_effect=lambda cmd,**kw:seen.append(kw['input'].decode()) or b''):
+            adapt_data(text,'unit',Path('/unused'))
+        self.assertEqual(len(seen),2)
+        self.assertNotEqual(seen[0].splitlines()[0],seen[1].splitlines()[0])
+
+
 if __name__=='__main__':unittest.main()

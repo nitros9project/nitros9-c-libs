@@ -7,6 +7,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <dir.h>
 
 #define CHECK(test) if (!(test)) { printf("FAIL %d\n", __LINE__); return 1; }
 static int compare(const void *a, const void *b)
@@ -25,6 +26,8 @@ int main(void)
     union { unsigned long value; unsigned words[2]; } number;
     struct tm calendar;
     _os_time packet;
+    DIR directory;
+    long now;
 
     CHECK(strlen("abc") == 3);
     CHECK(strcmp(strcpy(buffer,"ab"),"ab") == 0);
@@ -43,6 +46,9 @@ int main(void)
     CHECK(strcmp(itoa(-32767-1,buffer),"-32768") == 0);
     CHECK(strcmp(utoa(65535U,buffer),"65535") == 0);
     CHECK(strcmp(ltoa(-2147483647L-1L,buffer),"-2147483648") == 0);
+    CHECK(strcmp(ltoa(0L,buffer),"0") == 0);
+    CHECK(strcmp(ltoa(2147483647L,buffer),"2147483647") == 0);
+    CHECK(strcmp(ltoa(-123L,buffer),"-123") == 0);
     CHECK(atol("123456789") == 123456789L);
     CHECK(htol("12345678") == 0x12345678L);
     CHECK(strtol("-2147483648!",&end,10) == (-2147483647L-1L) && *end == '!');
@@ -55,6 +61,13 @@ int main(void)
     qsort(values,5,sizeof(int),compare);
     CHECK(values[0] == 1 && values[4] == 5);
     CHECK(bsearch(&key,values,5,sizeof(int),compare) == &values[2]);
+    for (key=1;key<=5;key++)
+        CHECK(bsearch(&key,values,5,sizeof(int),compare) == &values[key-1]);
+    key=0; CHECK(bsearch(&key,values,5,sizeof(int),compare) == 0);
+    key=6; CHECK(bsearch(&key,values,5,sizeof(int),compare) == 0);
+    key=1; CHECK(bsearch(&key,values,0,sizeof(int),compare) == 0);
+    CHECK(bsearch(&key,values,1,sizeof(int),compare) == values);
+    key=2; CHECK(bsearch(&key,values,1,sizeof(int),compare) == 0);
     i=setjmp(context);
     if (!i) longjmp(context,7);
     CHECK(i == 7);
@@ -76,11 +89,22 @@ int main(void)
     CHECK(fread(copy,1,256,file) == 256);
     CHECK(memcmp((const char *) bytes,(const char *) copy,256) == 0);
     CHECK(fclose(file) == 0);
+    directory.dd_fd=open("nativebytes",0);
+    CHECK(directory.dd_fd >= 0);
+    CHECK(telldir(&directory) == 0L);
+    seekdir(&directory,255L);
+    CHECK(telldir(&directory) == 255L);
+    seekdir(&directory,0L);
+    CHECK(telldir(&directory) == 0L);
+    CHECK(close(directory.dd_fd) == 0);
     unlink("nativebytes");
     calendar.tm_year=100; calendar.tm_mon=0; calendar.tm_mday=1;
     calendar.tm_hour=calendar.tm_min=calendar.tm_sec=0;
     u2otime(&packet,&calendar);
+    CHECK(packet.month == 1);
     value=o2utime(&packet); CHECK(value == 946684800L);
+    value=time(&now); CHECK(value != -1L && value == now);
+    CHECK(time(0) != -1L);
     fputs("OS9TEXT PASS\r",stdout);
     write(2,"OS9TEXT STDERR\r",15);
     return 0;

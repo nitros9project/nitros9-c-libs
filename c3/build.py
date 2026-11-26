@@ -37,12 +37,15 @@ def adapt_data(text, name, backend):
     pattern = re.compile(r'^\s*section\s+rwdata[^\n]*\n(.*?)^\s*endsect(?:ion)?[^\n]*(?:\n|$)', re.I | re.M | re.S)
     public = set(re.findall(r'^\s*([.\w]+)\s+EXPORT\b', text, re.I | re.M))
     public.update(re.findall(r'^\s*EXPORT\s+([.\w]+)', text, re.I | re.M))
+    data_index=0
     def replace(match):
+        nonlocal data_index
+        data_index+=1
         body = re.sub(r'^([.\w]+)\s+EQU\s+\*.*$',r'\1',match[1],flags=re.I|re.M)
         body = '\n'.join(line.split(';',1)[0].rstrip() if not re.search(r'\bfcc\b',line,re.I) else line for line in body.splitlines())
         body = re.sub(r'(?im)^.*\b(?:EXPORT|EXTERNAL|EXTERN)\b.*$', '', body)
         body = re.sub(r'(?i)\b(FCB|FDB|FCC|FQB|RMB|RZB|EQU|SET)\b',lambda m:m[0].lower(),body)
-        rma = ' psect c3_data_'+name+',0,0,0,0,0\n vsect\n'+body+'\n endsect\n endsect\n'
+        rma = ' psect c3_data_'+name+'_'+str(data_index)+',0,0,0,0,0\n vsect\n'+body+'\n endsect\n endsect\n'
         result = run(['awk','-f',backend/'c3lw.awk'],input=rma.encode()).decode()
         return '\n'.join(line for line in result.splitlines() if not line.startswith('\texport\t') or line.split()[-1] in public)+'\n'
     return pattern.sub(replace,text)
@@ -108,12 +111,14 @@ def main():
         if asm:
             for label in readonly_labels:
                 asm=re.sub(r'\b'+re.escape(label)+r'([^,\n]*),pcr\b',label+r'\1,y',asm,flags=re.I)
-            asm=select_long_returns(asm,name)
-            asm,report=lower(asm,{} if name in ('cfinish','printf','debug','stat') else {k:v for k,v in specs.items() if not (name=='fseek' and k=='_fseek')},name=name)
+            explicit=name in ('utime','ltoa','dirseek','bsearch')
+            if not explicit:asm=select_long_returns(asm,name)
+            asm,report=lower(asm,{} if explicit or name in ('cfinish','printf','debug','stat') else {k:v for k,v in specs.items() if not (name=='fseek' and k=='_fseek')},name=name)
             asm=select_profile(asm,name)
             call_specs=dict(specs)
             call_specs.update({name:specs['_'+name] for name in ('toupper','tolower')})
-            asm,calls=lower_calls(asm,call_specs,name)
+            if explicit:calls=[]
+            else:asm,calls=lower_calls(asm,call_specs,name)
             reports[name]={'entries':report,'calls':calls}
             asm=re.sub(r'\b[A-Za-z_]\w*\b',lambda m:symbols.get(m[0],m[0]),asm)
             # Collapse legacy assembly aliases that become the same native symbol.

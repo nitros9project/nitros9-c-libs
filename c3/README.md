@@ -33,6 +33,11 @@ results use X pointing at the compiler's `_flacc`. Y and U are preserved.
 
 Assembly selection changes the bodies' entry frames and call sites. It does not
 emit runtime ABI trampolines, CMOC-compiled bodies, or extra public wrappers.
+`utime.as`, `ltoa.as`, `dirseek.as`, and `bsearch.as` remain canonical assembly
+implementations. They select argument placement, long returns, and math/callback
+contracts with `NITROS9_C3`; no C replacements are generated. The binary search
+fix uses the array base, balances callback arguments, and preserves U/Y.
+
 Private assembly helpers keep their own documented contracts. Independent
 routines in the low-level I/O and ctype units are separate archive members, so
 using one does not pull all their entry points into an application.

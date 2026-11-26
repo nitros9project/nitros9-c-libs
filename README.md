@@ -18,7 +18,9 @@ extensions. See [Building with LLVM](#building-with-llvm) below.
 ## Building with C3
 
 C3 compiles the canonical `lib/` sources with its native calling convention;
-there are no CMOC objects or runtime ABI bridges in its archive. Build the host
+there are no CMOC objects or runtime ABI bridges in its archive. Existing time,
+long conversion, directory seek, and binary search implementations remain assembly
+with compile-time C3 ABI selection. Build the host
 C3 tools and install LWTOOLS, then run:
 
 ```sh

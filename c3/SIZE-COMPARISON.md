@@ -29,3 +29,8 @@ library change; the ABI probes separately compile with the generated canonical
 headers. Compiler-owned CRT/FP support is unchanged for the application comparison.
 
 No padding or benchmark-specific library selection is used to force size equality.
+
+The four restored assembly units (`utime`, `ltoa`, `dirseek`, and `bsearch`) are
+not linked into any of these seven applications. Rerunning all 114 fixtures after
+the restoration passes and gives the same module lengths in this table. Those
+four routines therefore account for zero bytes of the application size differences.
