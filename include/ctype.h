@@ -36,6 +36,12 @@ extern const unsigned char     _chcodes[];	/* in chcodes.r */
 #define _PUNCT         0x20
 #define _HEXDIG        0x40
 
+/* Keep addressable functions as well as the single-evaluation macros. */
+int isdigit(int c);
+int isalpha(int c);
+int isprint(int c);
+int isspace(int c);
+
 #define isascii(c)      ((unsigned)(c)<=0x7f)
 #define isalpha(c)      (_chcodes[c]&(_UPPER|_LOWER))
 #define isupper(c)      (_chcodes[c]&_UPPER)
@@ -53,16 +59,8 @@ extern const unsigned char     _chcodes[];	/* in chcodes.r */
 #define tolower(c)      _tolower(c)
 #define toascii(c)      ((c)&0x7f)
 
-#undef isdigit
-#undef isalpha
-#undef isprint
-#undef isspace
 #undef toupper
 #undef tolower
-int isdigit(int c);
-int isalpha(int c);
-int isprint(int c);
-int isspace(int c);
 int toupper(int c);
 int tolower(int c);
 

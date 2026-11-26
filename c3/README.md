@@ -27,6 +27,12 @@ return merging from tying independent archive members together. Stack-check call
 because the compiler's current cross-runtime stack checker is a no-op. The
 application optimizer setting remains independent of the library build.
 
+The shared headers retain inline `putchar`, `feof`, `fileno`, and character-classification
+macros alongside their declared functions. This avoids pulling helper functions into
+applications for ordinary calls. Use `#undef` for the corresponding macro before
+taking a function address with C3, whose preprocessor requires macro arguments.
+`toupper` and `tolower` remain functions to preserve non-letter input.
+
 ## ABI
 
 The first word/pointer argument is in D; later arguments are on the stack.

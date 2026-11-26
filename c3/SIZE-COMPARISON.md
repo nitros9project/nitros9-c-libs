@@ -28,6 +28,42 @@ Optimizer off:
 | ppc | 5349 | 5250 | -99 |
 | MicroEMACS | 21858 | 21814 | -44 |
 
+## Canonical-header follow-up
+
+The published shared-library migration compiled applications with canonical headers
+rather than the legacy headers used to isolate the archive comparison above.
+Those headers defined inline operations and then undefined them to declare the
+addressable functions. This added 34 bytes to optimized uniq and 24 to optimized
+ppc (35 and 22 bytes without optimization).
+
+Declaring the functions **before** defining their single-evaluation macros retains
+both interfaces and removes the entire increase. `toupper`/`tolower` remain
+functions because the legacy bitwise macros change non-letter input.
+
+| Optimized app | Published canonical headers | Fixed canonical headers | Saved |
+| --- | ---: | ---: | ---: |
+| uniq | 5629 | 5595 | 34 |
+| ppc | 5363 | 5339 | 24 |
+
+All other application sizes are unchanged. With optimization disabled, uniq is
+5744 -> 5709 and ppc is 5272 -> 5250. Both settings return to every size in the
+original tables above.
+
+Map accounting against the published build (fixed minus published):
+
+| Change | uniq optimized | uniq unoptimized | ppc optimized | ppc unoptimized |
+| --- | ---: | ---: | ---: | ---: |
+| Omit unused `stdiofn.o` member (`putchar`, `feof`, `fileno`) | -38 | -38 | -38 | -38 |
+| Omit unused `ctypefn_1.o` (`isdigit`) | -20 | -20 | 0 | 0 |
+| Inline application operations | +24 | +23 | +14 | +16 |
+| **Complete module** | **-34** | **-35** | **-24** | **-22** |
+
+The existing functions remain available after `#undef`; no library function is
+removed and no runtime adapter is added. Expanded native tests compare all four
+classification macros to their functions over all 256 byte values, check single
+evaluation of side effects, and exercise the stdio macros and addressable functions.
+`SIZE-ACCOUNTING.json` records this follow-up separately from the original audit.
+
 ## Costs removed
 
 The earlier increase was partly port/build overhead, not simply improved stdio.

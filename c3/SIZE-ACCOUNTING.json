@@ -439,5 +439,157 @@
         "syscommon_1": [0, 0, 14]
       }
     }
+  },
+  "canonical_header_followup": {
+    "compiler_revision": "fc885b0c2b695a6b42f4c88e6d5363615816a286",
+    "published_library_revision": "02d0b0d0cf685179b762b0090120abf73afad58d",
+    "published_run_url": "https://github.com/DrPitre/6809-c-benchmarks/actions/runs/45905957512",
+    "library_sha256": "9bf44a389fe4d94b272da64b6005d72e9ade57e2bcd855e0d92eab3c8cfc23db",
+    "headers_sha256": {
+      "ctype.h": "a06186631882d33e183ec66e3ef2b4eb12b49aa139b32c7797f765744173a8d5",
+      "stdio.h": "27dd650897a36b80eb2ddce0d22af5903aabe8ccc91ecd7bd04e7cb3f5919bd3"
+    },
+    "applications": [
+      {
+        "application": "uniq",
+        "configuration": "C3 optimizer off",
+        "published_bytes": 5744,
+        "fixed_bytes": 5709,
+        "fixed_sha256": "5a8e8755ea4aac75381fcb086c90a5806abffd3518d14b60cd285b09f3af892a",
+        "delta": -35,
+        "loaded_object_deltas": {
+          "stdiofn.o": -38,
+          "ctypefn_1.o": -20,
+          "uniq.r": 23
+        }
+      },
+      {
+        "application": "dgrep",
+        "configuration": "C3 optimizer off",
+        "published_bytes": 10180,
+        "fixed_bytes": 10180,
+        "fixed_sha256": "f67ee032f16190c675d4aa721558aa9f13d6c9a07670b1dc1be6e2da12f0c6d8",
+        "delta": 0,
+        "loaded_object_deltas": {}
+      },
+      {
+        "application": "ed",
+        "configuration": "C3 optimizer off",
+        "published_bytes": 17654,
+        "fixed_bytes": 17654,
+        "fixed_sha256": "a47bed186d59cfb98d73ef2afb789c51af65b844092d66b2f9c156f123e46d8a",
+        "delta": 0,
+        "loaded_object_deltas": {}
+      },
+      {
+        "application": "cb",
+        "configuration": "C3 optimizer off",
+        "published_bytes": 7400,
+        "fixed_bytes": 7400,
+        "fixed_sha256": "ec8c411373fd44bab9a4c526b2585f4c089aad7120939fcc66b44a46ea84cbd9",
+        "delta": 0,
+        "loaded_object_deltas": {}
+      },
+      {
+        "application": "lb",
+        "configuration": "C3 optimizer off",
+        "published_bytes": 6269,
+        "fixed_bytes": 6269,
+        "fixed_sha256": "ea966f53de6b5882198861498ce01a695623f9828d83378b499148f090a338d0",
+        "delta": 0,
+        "loaded_object_deltas": {}
+      },
+      {
+        "application": "ppc",
+        "configuration": "C3 optimizer off",
+        "published_bytes": 5272,
+        "fixed_bytes": 5250,
+        "fixed_sha256": "009828073cb2b294b7075d73d582a3ae7b00988fcd51152d6111b25f485b3d1b",
+        "delta": -22,
+        "loaded_object_deltas": {
+          "stdiofn.o": -38,
+          "ppc.r": 16
+        }
+      },
+      {
+        "application": "uemacs",
+        "configuration": "C3 optimizer off",
+        "published_bytes": 21814,
+        "fixed_bytes": 21814,
+        "fixed_sha256": "3314d3907d5172ab01fc46dfe65e2704e2f2e40affe48a09085b5c9db9d48e5a",
+        "delta": 0,
+        "loaded_object_deltas": {}
+      },
+      {
+        "application": "uniq",
+        "configuration": "C3 optimizer on",
+        "published_bytes": 5629,
+        "fixed_bytes": 5595,
+        "fixed_sha256": "f51bd23b642ca72502b3cfe64694cdd3b8a1e345820c111de9019879e505caac",
+        "delta": -34,
+        "loaded_object_deltas": {
+          "stdiofn.o": -38,
+          "ctypefn_1.o": -20,
+          "uniq.r": 24
+        }
+      },
+      {
+        "application": "dgrep",
+        "configuration": "C3 optimizer on",
+        "published_bytes": 10601,
+        "fixed_bytes": 10601,
+        "fixed_sha256": "3173a3078607940c58d73052c1fb2e1cdd5621000de1d65221f35832644fd389",
+        "delta": 0,
+        "loaded_object_deltas": {}
+      },
+      {
+        "application": "ed",
+        "configuration": "C3 optimizer on",
+        "published_bytes": 15971,
+        "fixed_bytes": 15971,
+        "fixed_sha256": "b003147ebc647017ae512fa3793a9eaf6ec83066b8909106b1b99531f3b30879",
+        "delta": 0,
+        "loaded_object_deltas": {}
+      },
+      {
+        "application": "cb",
+        "configuration": "C3 optimizer on",
+        "published_bytes": 8497,
+        "fixed_bytes": 8497,
+        "fixed_sha256": "e630e2da2b867e3b7a3709f7b7a15e910425872f61f43488326aee3508b04b86",
+        "delta": 0,
+        "loaded_object_deltas": {}
+      },
+      {
+        "application": "lb",
+        "configuration": "C3 optimizer on",
+        "published_bytes": 6182,
+        "fixed_bytes": 6182,
+        "fixed_sha256": "cc2e7a72390f43127d71460ec1910f8269f1f1e96eaf0e4f37cda3f588048690",
+        "delta": 0,
+        "loaded_object_deltas": {}
+      },
+      {
+        "application": "ppc",
+        "configuration": "C3 optimizer on",
+        "published_bytes": 5363,
+        "fixed_bytes": 5339,
+        "fixed_sha256": "d0302f6c272343ac2a5f7472896faa98ba853cbe1dcc96675c680b9d853818b7",
+        "delta": -24,
+        "loaded_object_deltas": {
+          "stdiofn.o": -38,
+          "ppc.r": 14
+        }
+      },
+      {
+        "application": "uemacs",
+        "configuration": "C3 optimizer on",
+        "published_bytes": 19509,
+        "fixed_bytes": 19509,
+        "fixed_sha256": "4c333a9c2c5e9ee80d52370b0ac80f0a5179562ad39ae69e23476b23d2e59c9e",
+        "delta": 0,
+        "loaded_object_deltas": {}
+      }
+    ]
   }
 }
