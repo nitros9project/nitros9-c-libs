@@ -19,6 +19,13 @@ def spec(args='char *p',result='int'):
 
 
 class SourceTests(unittest.TestCase):
+    def test_signal_header_exposes_word_handler_result_to_c3(self):
+        source='typedef void (*sighandler_t)(int);\n#define SIG_IGN ((sighandler_t) 1)\nsighandler_t signal(int signo, sighandler_t handler);\n'
+        result=c_view(source,header=True)
+        self.assertIn('int signal();',result)
+        self.assertIn('#define SIG_IGN 1',result)
+        self.assertNotIn('sighandler_t signal',result)
+
     def test_comments_preserve_urls_and_strings(self):
         self.assertEqual(c_view('char *s="https://example/a/*b*/"; // comment\n'), 'char *s="https://example/a/*b*/"; \n')
 

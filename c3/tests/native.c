@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <dir.h>
+#include <signal.h>
 
 #define CHECK(test) if (!(test)) { printf("FAIL %d\n", __LINE__); return 1; }
 static int compare(const void *a, const void *b)
@@ -82,6 +83,8 @@ int main(void)
     CHECK(strcmp(buffer,"00012 abc 123456") == 0);
     CHECK(sprintf(buffer,"%f:%d",1.0,7) == 2);
     CHECK(strcmp(buffer,":7") == 0);
+    signal(SIGINT,SIG_IGN);
+    CHECK(signal(SIGINT,SIG_DFL) == SIG_IGN);
     CHECK(_gs_rdy(255) == -1);
     CHECK(getstat(1,255,0,0) == -1);
     CHECK(_os_getstat(1,255,0,0) != 0);
