@@ -18,7 +18,18 @@ static void check_true(const char *name, int condition)
 int main(void)
 {
     FILE *fp;
-    int ch;
+    int ch, result;
+    FILE streams[2], *scan;
+    int (*eoffn)(FILE *)=feof, (*fdfn)(FILE *)=fileno, (*outfn)(int)=putchar;
+
+    streams[0]._flag=_EOF; streams[0]._fd=37;
+    scan=streams; result=feof(scan++);
+    check_true("feof macro/function and single evaluation", result == (*eoffn)(streams) && scan == streams+1);
+    scan=streams; result=fileno(scan++);
+    check_true("fileno macro/function and single evaluation", result == (*fdfn)(streams) && scan == streams+1);
+    ch='X'; result=putchar(ch++);
+    check_true("putchar single evaluation", result == 'X' && ch == 'Y');
+    check_true("putchar addressable function", (*outfn)('X') == 'X');
 
     unlink(edge_file);
     fp = fopen(edge_file, "w");

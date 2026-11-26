@@ -15,6 +15,12 @@ ANSI C cross-compiler. The LLVM port uses the MC6809 LLVM toolchain and an
 OS-9 picolibc sysroot, with native implementations of the Kreider and OS-9
 extensions. See [Building with LLVM](#building-with-llvm) below.
 
+The shared headers retain inline `putchar`, `feof`, `fileno`, and character-classification
+macros alongside their declared functions. This avoids pulling helper functions into
+applications for ordinary calls. Use `#undef` for the corresponding macro before
+taking a function address with C3, whose preprocessor requires macro arguments.
+`toupper` and `tolower` remain functions to preserve non-letter input.
+
 ## Building with C3
 
 C3 compiles the canonical `lib/` sources with its native calling convention;

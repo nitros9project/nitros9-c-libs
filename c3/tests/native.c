@@ -16,12 +16,45 @@ static int compare(const void *a, const void *b)
     return *(const int *) a - *(const int *) b;
 }
 
+/* C3's preprocessor requires #undef before taking a function's address. */
+static int digmacro(int c) { return isdigit(c); }
+static int alphamac(int c) { return isalpha(c); }
+static int printmac(int c) { return isprint(c); }
+static int spacemac(int c) { return isspace(c); }
+static int eofmacro(FILE *p) { return feof(p); }
+static int fdmacro(FILE *p) { return fileno(p); }
+static int emit(int *p) { return putchar((*p)++); }
+static int once(void)
+{
+    int i;
+    FILE streams[2], *scan;
+    i='0'; CHECK(isdigit(i++) && i == '1');
+    i='A'; CHECK(isalpha(i++) && i == 'B');
+    i='!'; CHECK(isprint(i++) && i == '"');
+    i=' '; CHECK(isspace(i++) && i == '!');
+    streams[0]._flag=_EOF; streams[0]._fd=37;
+    scan=streams; CHECK(feof(scan++) == _EOF && scan == streams+1);
+    scan=streams; CHECK(fileno(scan++) == 37 && scan == streams+1);
+    return 0;
+}
+#undef isdigit
+#undef isalpha
+#undef isprint
+#undef isspace
+#undef feof
+#undef fileno
+#undef putchar
+
 int main(void)
 {
     char buffer[64], *end, *set;
     unsigned char bytes[256], copy[256];
     int values[5], key = 3, i;
-    FILE *file;
+    FILE *file, streams[2], *scan;
+    int (*classfn)(int);
+    int (*eoffn)(FILE *);
+    int (*fdfn)(FILE *);
+    int (*outfn)(int);
     jmp_buf context;
     long value;
     union { unsigned long value; unsigned words[2]; } number;
@@ -29,6 +62,19 @@ int main(void)
     _os_time packet;
     DIR directory;
     long now;
+
+    /* Both macro calls and addressable functions must retain their semantics. */
+    for (i=0;i<256;i++) {
+        classfn=isdigit; CHECK(digmacro(i) == (*classfn)(i));
+        classfn=isalpha; CHECK(alphamac(i) == (*classfn)(i));
+        classfn=isprint; CHECK(printmac(i) == (*classfn)(i));
+        classfn=isspace; CHECK(spacemac(i) == (*classfn)(i));
+    }
+    CHECK(once() == 0);
+    streams[0]._flag=_EOF; streams[0]._fd=37;
+    eoffn=feof; fdfn=fileno;
+    scan=streams; CHECK(eofmacro(scan++) == (*eoffn)(streams) && scan == streams+1);
+    scan=streams; CHECK(fdmacro(scan++) == (*fdfn)(streams) && scan == streams+1);
 
     CHECK(strlen("abc") == 3);
     CHECK(memset(buffer,'X',3) == buffer && buffer[0] == 'X' && buffer[2] == 'X');
@@ -138,7 +184,9 @@ int main(void)
     value=o2utime(&packet); CHECK(value == 946684800L);
     value=time(&now); CHECK(value != -1L && value == now);
     CHECK(time(0) != -1L);
-    fputs("OS9TEXT PASS\r",stdout);
+    i='O'; CHECK(emit(&i) == 'O' && i == 'P');
+    outfn=putchar; CHECK((*outfn)('S') == 'S');
+    fputs("9TEXT PASS\r",stdout);
     write(2,"OS9TEXT STDERR\r",15);
     return 0;
 }

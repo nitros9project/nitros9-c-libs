@@ -37,7 +37,28 @@ void simple(void)
 
 void exhaustive( void )
 {
-	int a;
+	int a, n;
+	int (*classfn)(int);
+
+	for (a=0; a<256; a++) {
+		classfn=isdigit;
+		if (isdigit(a) != (*classfn)(a)) failed=1;
+		classfn=isalpha;
+		if (isalpha(a) != (*classfn)(a)) failed=1;
+		classfn=isprint;
+		if (isprint(a) != (*classfn)(a)) failed=1;
+		classfn=isspace;
+		if (isspace(a) != (*classfn)(a)) failed=1;
+	}
+	check_true("classification macro/function agreement", !failed);
+	n='0'; a=isdigit(n++);
+	check_true("isdigit evaluates once", a && n == '1');
+	n='A'; a=isalpha(n++);
+	check_true("isalpha evaluates once", a && n == 'B');
+	n='!'; a=isprint(n++);
+	check_true("isprint evaluates once", a && n == '"');
+	n=' '; a=isspace(n++);
+	check_true("isspace evaluates once", a && n == '!');
 
 	for( a=0; a<0x80; a++ )
 	{
