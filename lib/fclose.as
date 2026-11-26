@@ -1,6 +1,6 @@
 _fclose             EXPORT    ;         export stream close helper
 
-__os_close          EXTERNAL  ;         low-level close wrapper
+_close              EXTERNAL  ;         low-level close wrapper
 _fflush             EXTERNAL  ;         stream flush helper
 
 _WRITE              equ       $02       ; FILE open-for-write flag
@@ -25,8 +25,8 @@ L_fclose_read_only  clra                ; synthesize zero status for read-only s
                     clrb                ; synthesize zero status for read-only streams
 L_fclose_path       pshs      d         ; preserve flush status across low-level close
                     ldd       8,u       ; load underlying path number
-                    pshs      d         ; stage path number for __os_close
-                    lbsr      __os_close ; close the underlying OS-9 path
+                    pshs      d         ; stage path number for _close
+                    lbsr      _close    ; close the underlying OS-9 path
                     leas      2,s       ; discard staged path number
                     clra                ; clear high byte for zero flag word
                     clrb                ; clear low byte for zero flag word

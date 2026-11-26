@@ -1,8 +1,8 @@
 _fflush             EXPORT    ;         export stream flush helper
 _flush              EXPORT    ;         export internal stdio flush helper
 
-__os_write          EXTERNAL  ;         low-level write wrapper
-__os_writeln        EXTERNAL  ;         low-level writeln wrapper
+_write          EXTERNAL  ;         low-level write wrapper
+_writeln        EXTERNAL  ;         low-level writeln wrapper
 _setbase            EXTERNAL  ;         stdio buffer initializer
 _ftell              EXTERNAL  ;         buffered current-position helper
 _lseek              EXTERNAL  ;         long seek helper
@@ -95,38 +95,37 @@ flush_pending_bytes ldd       ,u        ; load current buffer pointer
                     beq       _flushrbf ; block-write path for non-SCF devices
                     ldd       2,u       ; start SCF writes from the buffer base
                     bra       _flush3   ; share pointer update logic
-_flush2             pshs      x         ; preserve X while staging write arguments
-                    pshs      d         ; stage remaining byte count
-                    leax      ,s        ; point X at count slot
-                    pshs      x         ; pass pointer-to-count
+_flush2             pshs      d         ; pass requested byte count
                     ldd       ,u        ; load current buffer pointer
                     pshs      d         ; pass data pointer
                     ldd       8,u       ; load underlying path number
                     pshs      d         ; pass path number
-                    lbsr      __os_writeln ; write buffered data to SCF device
-                    leas      10,s      ; discard staged arguments and preserved X
-                    cmpd      #0        ; low-level wrappers return zero on success
-                    bne       flush_error ; branch if the device write failed
+                    lbsr      _writeln  ; return actual bytes written, or -1
+                    leas      6,s       ; discard staged write arguments
+                    std       ,s        ; save actual byte count in local scratch
+                    cmpd      #-1
+                    beq       flush_error
                     ldd       2,s       ; fetch pending-byte count
-                    subd      -4,s      ; subtract amount written this iteration
-                    std       2,s       ; update pending-byte count
-                    ldd       ,u        ; reload current buffer pointer
-                    addd      -4,s      ; advance by amount written this iteration
+                    subd      ,s        ; subtract amount written this iteration
+                    std       2,s
+                    ldd       ,u
+                    addd      ,s        ; advance current pointer by actual byte count
 _flush3             std       ,u        ; save updated current buffer pointer
                     ldd       2,s       ; fetch remaining byte count
                     bne       _flush2   ; loop until all SCF bytes are written
                     bra       flush_success ; finalize successful flush
 
-_flushrbf           leax      2,s       ; point X at pending-byte count
-                    pshs      x         ; pass pointer-to-count
-                    ldd       2,u       ; load buffer base pointer
-                    pshs      d         ; pass data pointer
-                    ldd       8,u       ; load underlying path number
-                    pshs      d         ; pass path number
-                    lbsr      __os_write ; write buffered block to non-SCF device
-                    leas      6,s       ; discard staged write arguments
-                    bne       flush_error ; branch if the block write failed
-                    bra       flush_success ; finalize successful flush
+_flushrbf           ldd       2,s       ; requested byte count
+                    pshs      d
+                    ldd       2,u       ; buffer base
+                    pshs      d
+                    ldd       8,u       ; path number
+                    pshs      d
+                    lbsr      _write    ; use the same traditional I/O API as read
+                    leas      6,s
+                    cmpd      2,s       ; a short block write is a flush failure
+                    bne       flush_error
+                    bra       flush_success
 flush_error         ldb       7,u       ; load low byte of FILE flags
                     orb       #_ERR     ; mark stream as having encountered an error
                     stb       7,u       ; save updated error flag

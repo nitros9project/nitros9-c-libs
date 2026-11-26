@@ -6,6 +6,15 @@
  * 12-05-2005 tjl Fixed a bug where sprintf( s, "" ) would
  *                not put a null in the string s.
 */
+#ifdef NITROS9_C3
+#define C3_PRINTF_ARGS 4
+#define C3_FPRINTF_ARGS 6
+#define C3_FORMAT 4
+#else
+#define C3_PRINTF_ARGS 6
+#define C3_FPRINTF_ARGS 8
+#define C3_FORMAT 6
+#endif
 #include <stdio.h>
 #include <os.h>
 
@@ -31,9 +40,11 @@ __iob		EXTERNAL
 *	2,s = format string
 *	4,s = pointer to param
 			pshs  u 
-			leau  2+4,s                     point U to parameters referenced by format string
+			leau  C3_PRINTF_ARGS,s                     point U to parameters referenced by format string
 			leax  __iob+13,y                get pointer to stdout FILE structure
+			#ifndef NITROS9_C3
 			ldd   2+2,s			            get format string
+#endif
 			bra   printf1 
 	}
 }
@@ -49,9 +60,13 @@ fprintf(FILE *fp, const char *fmt, ...)
 *	4,s = format string
 *	6,s = pointer to param
 			pshs  u 
-			leau  2+6,s                     point U to parameters referenced by format string
+			leau  C3_FPRINTF_ARGS,s                     point U to parameters referenced by format string
+			#ifdef NITROS9_C3
+            tfr d,x
+#else
 			ldx   2+2,s 					get FILE ptr param
-			ldd   2+4,s 					get format string
+#endif
+			ldd   C3_FORMAT,s 					get format string
 printf1		stx   _fpmp,y					save FILE ptr to static
 			leax  >put_to_file,pcr       	ptr to output routine
 			bra   L002e 
@@ -69,11 +84,13 @@ sprintf(char *str, const char *fmt, ...)
 *	4,s = format string
 *	6,s = pointer to param
 		pshs    u 
+		#ifndef NITROS9_C3
 		ldd     2+2,s                       get destination string
+#endif
 		std     _fpmp,y
         clr     [_fpmp,y]                   write an initial zero to the buffer
-		leau    2+6,s                       point U to parameters referenced by format string
-		ldd     2+4,s                       get format string
+		leau    C3_FPRINTF_ARGS,s                       point U to parameters referenced by format string
+		ldd     C3_FORMAT,s                       get format string
 		leax    >put_to_mem,pcr             ptr to output routine
 L002e 	pshs    d,u                         stack *expr and *fmt string
 		pshs    x 
@@ -185,8 +202,7 @@ switch 	cmpb    #'c'            char
 		lbra    L0047           default -- just print
 
 * print a float
-case_f 	ldd     fldsiz+2,s 
-		leax    prtvar+2,s 
+case_f 	leax    prtvar+2,s
 		ldd     fraccnt+2,s 
 		tst     fracflg+2,s 
 		bne     case_f1 
@@ -196,13 +212,11 @@ case_f1 pshs    x               stack *variable
 		ldb     -1,u 
 		clra   
 		pshs    d 
-		lbsr    _pffloat
-		leas    6,s 
-		tfr     d,x
 		clrb
 		lda     #$7D
-		std     fraccnt+2,s
-		tfr     x,d
+		std     fraccnt+8,s     reset after staging all three arguments
+		lbsr    _pffloat
+		leas    6,s
 		tfr     d,u
 		lbra    case_x8 
 
@@ -426,9 +440,12 @@ _DIGIT  equ     $08
 		
 * B = character to put
 put_to_file
+#ifdef NITROS9_C3
+        clra
+#endif
      	ldx     _fpmp,y 
 		pshs    d,x 
-		lbsr    putc 
+		lbsr    _putc
 		leas    4,s 
 		ldd     _pfcount,y
 		addd    #1                  count one character written

@@ -45,7 +45,7 @@ stk_fseek_whence    equ       18        ; seek origin after local scratch alloca
                     pshs      u         ; pass FILE pointer to setbase
                     lbsr      _setbase  ; allocate/setup stream buffering state
                     leas      2,s       ; discard staged FILE pointer
-                    lbra      fseek_seed_offset ; seed seek scratch before real reposition path
+                    lbra      fseek_real_seek ; proceed with the original offset argument
 fseek_stream_ready  lda       FILE_FLAG,u ; reload high byte so the _WRITTEN test sees the full flag byte
                     bita      #_WRITTEN_HIGH ; test _WRITTEN without destroying other high-byte flags
                     beq       fseek_read_mode ; branch if stream is currently in read mode
@@ -61,10 +61,10 @@ fseek_stream_ready  lda       FILE_FLAG,u ; reload high byte so the _WRITTEN tes
                     ldd       FILE_BASE,u ; load buffer base pointer
                     addd      FILE_BUFSIZ,u ; recompute buffer end as base + size
                     std       FILE_END,u ; restore end pointer after flush reset
-                    lbra      fseek_seed_offset ; seed seek scratch before real reposition path
+                    lbra      fseek_real_seek ; proceed with the original offset argument
 fseek_read_mode     ldd       FILE_PTR,u ; load current buffer pointer
                     cmpd      FILE_END,u ; compare against buffer end pointer
-                    lbhs      fseek_seed_offset ; seed seek scratch before real reposition path
+                    lbhs      fseek_real_seek ; proceed with the original offset argument
                     leax      stk_fseek_offset,s ; point X at local scratch long
                     pshs      x         ; stage destination pointer for long move
                     leax      stk_fseek_pos,s ; point X at requested seek offset argument
@@ -73,7 +73,7 @@ fseek_read_mode     ldd       FILE_PTR,u ; load current buffer pointer
                     beq       fseek_adjust_set ; branch for SEEK_SET relative adjustment
                     cmpx      #SEEK_CUR ; test SEEK_CUR case
                     beq       fseek_check_buffer ; branch for current-position adjustment
-                    lbra      fseek_compensate_unread ; SEEK_END needs extra compensation path
+                    lbra      fseek_real_seek ; SEEK_END is relative to file size, not unread input
 fseek_adjust_set    leax      stk_fseek_offset,s ; point X at local scratch long
                     pshs      x         ; stage destination pointer for long move
                     ldd       2,x       ; fetch scratch low word
@@ -134,12 +134,7 @@ fseek_compensate_unread leax      stk_fseek_pos,s ; point X at original seek off
                     subd      FILE_PTR,u ; compute unread bytes left in buffer
                     lbsr      _litol    ; convert unread-byte count to long
                     lbsr      _lsub     ; subtract unread bytes from requested offset
-                    lbsr      _lmove    ; store corrected offset back into local scratch
-                    bra       fseek_real_seek ; use corrected scratch without reseeding it
-fseek_seed_offset   ldd       stk_fseek_pos,s ; copy original offset high word into scratch when no adjustment ran
-                    std       stk_fseek_offset,s ; save scratch high word
-                    ldd       stk_fseek_pos+2,s ; copy original offset low word into scratch when no adjustment ran
-                    std       stk_fseek_offset+2,s ; save scratch low word
+                    lbsr      _lmove    ; store corrected offset back into the stacked offset argument
 fseek_real_seek     ldd       FILE_END,u ; load buffer end pointer
 fseek_end_buffer    std       FILE_PTR,u ; move current pointer to buffer end
 fseek_clear_eof     ldb       FILE_FLAG+1,u ; load low byte of FILE flags
@@ -178,6 +173,15 @@ fseek_long_zero     fdb       $0000,$0000 ; 32-bit zero constant for long compar
 fseek_long_minus_one fdb       $FFFF,$FFFF ; 32-bit -1 constant for error compare
 
 _rewind:
+                    ifdef NITROS9_C3
+                    ldx       #0        ; leave the native FILE pointer in D
+                    pshs      x         ; SEEK_SET
+                    pshs      x         ; zero offset low word
+                    pshs      x         ; zero offset high word
+                    lbsr      _fseek
+                    leas      6,s
+                    rts
+                    else
 stk_rewind_ret      equ       0         ; caller return address
 stk_rewind_stream   equ       2         ; FILE * argument
                     clra                ; build zero seek offset high byte
@@ -192,6 +196,7 @@ stk_rewind_stream   equ       2         ; FILE * argument
                     lbsr      _fseek    ; seek to offset 0 from start of file
                     leas      10,s      ; discard staged arguments
                     rts                 ; rewind has no explicit return value
+                    endc
 
 _ftell:
 stk_ftell_saved_u   equ       0         ; saved U after entry prologue

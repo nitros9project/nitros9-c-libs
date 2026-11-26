@@ -1,18 +1,42 @@
 # C Library support for OS-9/NitrOS-9
 
-This project provides C libraries for CMOC and LLVM targeting OS-9/NitrOS-9
+This project provides C libraries for CMOC, C3, and LLVM targeting OS-9/NitrOS-9
 on the MC6809. The C library is based on the Kreider C library; the CMOC
 CGFX library is based on Mike Sweet's CGFX7 library.
 
 | Toolchain | Libraries | Build |
 | --- | --- | --- |
 | CMOC | `libc.a`, floating-point `libcf.a`, and `libcgfx.a` | `make libs` |
+| C3 (native register ABI) | `c3/out/libc3.a` | `python3 c3/build.py --c3 /path/to/nitros9-languages/c3` |
 | LLVM with picolibc | `libcmoc_os9_compat.a` and optional `libcmoc_os9_float.a` | `make -C llvm` |
 
 [CMOC](https://perso.b2b2c.ca/~sarrazip/dev/cmoc.html) is Pierre Sarrazin's
 ANSI C cross-compiler. The LLVM port uses the MC6809 LLVM toolchain and an
 OS-9 picolibc sysroot, with native implementations of the Kreider and OS-9
 extensions. See [Building with LLVM](#building-with-llvm) below.
+
+## Building with C3
+
+C3 compiles the canonical `lib/` sources with its native calling convention;
+there are no CMOC objects or runtime ABI bridges in its archive. Existing time,
+long conversion, directory seek, and binary search implementations remain assembly
+with compile-time C3 ABI selection. Build the host
+C3 tools and install LWTOOLS, then run:
+
+```sh
+python3 c3/build.py --c3 /path/to/nitros9-languages/c3
+python3 -m unittest discover -s c3/tests -p 'test_*.py'
+python3 c3/test.py --c3 /path/to/nitros9-languages/c3
+```
+
+The generated headers are in `c3/out/include`; the default non-floating stdio
+archive is `c3/out/libc3.a`. C3's compiler-specific startup and floating arithmetic
+primitives remain owned by the compiler. `c3/test.py` stages those primitives
+without building or linking C3's old local C library. See [c3/README.md](c3/README.md)
+for kernel tests, ABI details, and the measured [application sizes](c3/SIZE-COMPARISON.md).
+The size report includes per-member linker-map accounting; `c3/size_report.py`
+checks that loaded sections plus header/name/CRC reconcile to the complete module.
+CGFX and the CMOC floating stdio archive are not C3 targets.
 
 ## Building with CMOC
 

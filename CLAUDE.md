@@ -11,7 +11,8 @@ with the per-scenario actual / golden / diff PNGs and MAME log.
 ## Layout cheat-sheet
 
 ```
-lib/                C library sources (libc.a, libcf.a)
+lib/                Canonical C library sources (CMOC and native C3)
+c3/                 Native C3 build selection, headers, and ABI/kernel tests
 cgfx/               CGFX graphics library (libcgfx.a)
 unittest/           Text-mode unit tests (one .c per test)
 graphictest/        Graphics tests: .c programs + scenario harness
@@ -381,3 +382,33 @@ in the CMOC unittest/ Makefile or recipe disks. Keep the LLVM README and root
 README in sync with changes here. LLVM code must use picolibc's uid_t and FILE
 layouts; do not reuse CMOC's assembly stack offsets. readln converts CR to LF
 and leaves NUL termination to its caller.
+
+## Native C3 profile
+
+`python3 c3/build.py --c3 /path/to/nitros9-languages/c3` compiles canonical
+`lib/` C with C3 and selects the C3 ABI in the same assembly bodies. No CMOC
+compiler or prebuilt library is used. Outputs and generated headers stay under
+`c3/out/` (override with `--out`). Keep `README.md` and `c3/README.md` in sync.
+
+Run `python3 -m unittest discover -s c3/tests -p 'test_*.py'` for the build-selection
+regressions. `c3/test.py --c3 PATH` builds the ABI probes with both optimizer
+settings; supply `--boot-disk IMAGE --firmware SREC --emulator USIM` to execute
+them on the Pico-Thing kernel. The image must support `/dd/startup`. These tests
+are separate from CMOC's `unittest/` and recipe registration. Check both compiler
+profiles when changing shared bodies. Do not add C3 copies of library sources
+or runtime trampolines. Keep canonical assembly implementations in assembly;
+`utime`, `ltoa`, `dirseek`, `bsearch`, and `create` select their native ABI explicitly with
+`NITROS9_C3` and bypass the automatic entry/call lowering passes. C3 compiler-owned
+startup/FP primitives are not libc.
+
+C3 has 8-character external identifiers, a signed byte type, and no unsigned-long
+arithmetic. Generated header/name views and shared word-based arithmetic handle
+those constraints; do not silently reinterpret unsigned arithmetic. API aliases,
+shared assembly exits, callback arguments, and initialized data need native tests.
+Application sizes are measured module lengths, not estimates or padded binaries.
+`c3/size_report.py` reconciles map sections to complete modules; keep
+`c3/SIZE-COMPARISON.md` and `c3/SIZE-ACCOUNTING.json` in sync when updating sizes.
+Private stdio helpers keep FILE in U for C3. Data-only C units bypass optx to avoid
+initializing BSS; ctype leaves are optimized separately to avoid merged returns.
+I/O, status, and status-return bodies split into independent archive members;
+existing private calls become normal linker references, without generated code.

@@ -1,5 +1,4 @@
-#include <cmoc.h>
-#include <coco.h>
+#include <stdio.h>
 
 #define I$ReadLn            0x8B
 

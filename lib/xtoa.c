@@ -1,43 +1,47 @@
 #include <stdlib.h>
 
-static char *
-utoa_core(unsigned long value, char *buffer)
+static void
+utoa_core(unsigned value, char *buffer)
 {
-	char tmp[12];
-	int i = 0;
-
-	do {
-		tmp[i++] = (char) ((value % 10UL) + '0');
-		value /= 10UL;
-	} while (value);
-
-	while (i > 0)
-		*buffer++ = tmp[--i];
-	*buffer = '\0';
-	return buffer;
+    char digits[5];
+    int count = 0;
+    do {
+        digits[count++] = (char) ((value % 10U) + '0');
+        value /= 10U;
+    } while (value);
+    while (count)
+        *buffer++ = digits[--count];
+    *buffer = 0;
 }
 
 char *
 utoa(unsigned value, char *buffer)
 {
-	utoa_core((unsigned long) value, buffer);
-	return buffer;
+    utoa_core(value, buffer);
+    return buffer;
 }
 
 char *
 utoa10(unsigned value, char *buffer)
 {
-	return utoa(value, buffer);
+    return utoa(value, buffer);
 }
 
 char *
 itoa(int value, char *buffer)
 {
-	return ltoa((long) value, buffer);
+    char *digits = buffer;
+    unsigned magnitude = (unsigned) value;
+    if (value < 0) {
+        *digits++ = '-';
+        magnitude = 0U - magnitude;
+    }
+    utoa_core(magnitude, digits);
+    return buffer;
 }
 
 char *
 itoa10(int value, char *buffer)
 {
-	return itoa(value, buffer);
+    return itoa(value, buffer);
 }

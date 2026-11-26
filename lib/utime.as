@@ -60,6 +60,30 @@ _time:
 stk_time_ret        equ       0         ; caller return address
 stk_time_result     equ       2         ; hidden CMOC long-return destination
 stk_time_arg        equ       4         ; optional caller destination for returned time_t
+                    ifdef NITROS9_C3
+                    pshs      d,u       ; save optional destination and caller U
+                    leas      -6,s      ; local OS-9 time packet
+                    leau      ,s
+                    tfr       u,d       ; native first pointer argument
+                    lbsr      __os_getime
+                    cmpd      #0
+                    bne       time_error
+                    tfr       u,d
+                    lbsr      _o2utime   ; X points at _flacc
+                    ldu       6,s       ; optional time_t destination
+                    beq       time_done
+                    ldd       ,x
+                    std       ,u
+                    ldd       2,x
+                    std       2,u
+                    bra       time_done
+time_error          leax      _flacc,y
+                    ldd       #-1
+                    std       ,x
+                    std       2,x
+time_done           leas      8,s       ; packet and saved destination
+                    puls      u,pc
+                    else
                     pshs      u         ; preserve caller's U register
                     leas      -6,s      ; allocate local OS-9 time packet
                     leau      ,s        ; point U at local packet storage
@@ -77,6 +101,7 @@ stk_time_arg        equ       4         ; optional caller destination for return
                     std       2,u       ; store low word through caller pointer
 noarg               leas      10,s      ; discard _o2utime args and local packet
                     puls      u,pc      ; restore U and return hidden long result
+                    endc
 
 
 * long
@@ -97,7 +122,11 @@ stk_o2utime_accum_high_lo equ       1         ; low byte of accumulator high wor
 stk_o2utime_accum_low equ       2         ; low word once local accumulator is allocated
 stk_o2utime_month_counter equ       4         ; scratch month counter byte in saved-D slot
                     pshs      d,u       ; preserve working registers used during conversion
+                    ifdef NITROS9_C3
+                    ldu       ,s        ; first packet argument saved from D
+                    else
                     ldu       stk_o2utime_packet+4,s ; load source packet after saved D/U
+                    endc
                     clra                ; prepare zero high word of 32-bit accumulator
                     clrb                ; prepare zero low word of 32-bit accumulator
                     pshs      d         ; allocate accumulator high word
@@ -115,7 +144,7 @@ o2ut1               leax      365,x     ; add a normal year to elapsed-day count
                     leax      1,x       ; add February 29 for leap year
 o2ut2               incb                ; advance to next year offset
                     cmpb      ,u        ; compare against packet year
-                    blt       o2ut1     ; continue until all prior years are counted
+                    blo       o2ut1     ; continue until all prior years are counted
                     stx       stk_o2utime_accum_low,s ; store elapsed days in accumulator low word
 *
 *    monsiz[1] = (*tp++ & 3) ? 28 : 29;           /* fix for leap year */
@@ -210,7 +239,11 @@ o2ut5               stb       stk_o2utime_month_counter,s ; save current month c
 *
 * return (accum);
                     leau      stk_o2utime_accum_high,s ; point U at 32-bit accumulator
+                    ifdef NITROS9_C3
+                    leax      _flacc,y  ; native long result accumulator
+                    else
                     ldx       stk_o2utime_result+8,s ; load hidden return destination after locals
+                    endc
                     ldd       ,u        ; copy accumulator high word
                     std       ,x        ; store high word to return destination
                     ldd       2,u       ; copy accumulator low word
@@ -276,8 +309,13 @@ stk_u2otime_ret     equ       0         ; caller return address
 stk_u2otime_packet  equ       2         ; destination OS-9 time packet pointer
 stk_u2otime_tm      equ       4         ; source struct tm pointer
                     pshs      u         ; preserve U while walking struct tm fields
+                    ifdef NITROS9_C3
+                    tfr       d,x       ; native destination arrives in D
+                    ldu       stk_u2otime_tm,s ; second argument after saved U
+                    else
                     ldu       stk_u2otime_tm+2,s ; load struct tm pointer after saved U
                     ldx       stk_u2otime_packet+2,s ; load OS-9 packet destination after saved U
+                    endc
                     leax      6,x       ; write destination packet from end toward start
                     lda       #6        ; copy six byte-sized fields
 u2o1                ldb       ,u+       ; skip high byte of CMOC int field
@@ -285,6 +323,7 @@ u2o1                ldb       ,u+       ; skip high byte of CMOC int field
                     stb       ,-x       ; store packet byte in reverse field order
                     deca                ; count copied packet fields
                     bne       u2o1      ; continue until all six packet bytes are stored
+                    inc       1,x       ; struct tm month is zero-based, OS-9 month is one-based
                     puls      u,pc      ; restore U and return
 
 daylight            fdb       0         ; legacy daylight-saving flag storage

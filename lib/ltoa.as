@@ -10,9 +10,15 @@ _ltoa               EXPORT    ;         export this symbol
 
 _lnegx              EXTERNAL  ;         import external symbol
 _reverse            EXTERNAL  ;         import external symbol
+                    ifndef NITROS9_C3
 divDWordDWord       EXTERNAL  ;         import external symbol
 isDWordZero         EXTERNAL  ;         import external symbol
 modDWordDWord       EXTERNAL  ;         import external symbol
+                    else
+_ludiv              EXTERNAL
+_lumod              EXTERNAL
+_flacc              EXTERNAL
+                    endc
 
 _ltoa:
 stk_ltoa_saved_u    equ       0         ; saved U register at U after prologue
@@ -62,6 +68,18 @@ ltoa_positive
 * do {
 ltoa_digit_loop
 *     rem = current % 10;
+                    ifdef NITROS9_C3
+                    ldd       stk_ltoa_current_lo,u
+                    pshs      d
+                    ldd       stk_ltoa_current_hi,u
+                    pshs      d         ; native math helper consumes dividend
+                    leax      ltoa_ten,pcr
+                    lbsr      _lumod
+                    ldd       ,x
+                    std       stk_ltoa_remainder_hi,u
+                    ldd       2,x
+                    std       stk_ltoa_remainder_lo,u
+                    else
                     leax      ltoa_ten,pcr ; point at divisor constant 10
                     pshs      x         ; pass divisor pointer
                     leax      stk_ltoa_current_hi,u ; point at current dividend
@@ -69,6 +87,7 @@ ltoa_digit_loop
                     leax      stk_ltoa_remainder_hi,u ; pass destination for remainder
                     lbsr      modDWordDWord ; compute current % 10 into remainder local
                     leas      4,s       ; discard divisor and dividend pointer arguments
+                    endc
 
 *     *buffer++ = rem + '0';
                     ldx       stk_ltoa_buffer,u ; load current output cursor
@@ -78,6 +97,18 @@ ltoa_digit_loop
                     stx       stk_ltoa_buffer,u ; save updated output cursor
 
 *     current /= 10;
+                    ifdef NITROS9_C3
+                    ldd       stk_ltoa_current_lo,u
+                    pshs      d
+                    ldd       stk_ltoa_current_hi,u
+                    pshs      d         ; native math helper consumes dividend
+                    leax      ltoa_ten,pcr
+                    lbsr      _ludiv
+                    ldd       ,x
+                    std       stk_ltoa_current_hi,u
+                    ldd       2,x
+                    std       stk_ltoa_current_lo,u
+                    else
                     leax      ltoa_ten,pcr ; point at divisor constant 10
                     pshs      x         ; pass divisor pointer
                     leax      stk_ltoa_current_hi,u ; point at current dividend
@@ -85,10 +116,17 @@ ltoa_digit_loop
                     leax      stk_ltoa_current_hi,u ; quotient overwrites current value
                     lbsr      divDWordDWord ; compute current / 10 into current local
                     leas      4,s       ; discard divisor and dividend pointer arguments
+                    endc
 
 * } while (current != 0);
                     leax      stk_ltoa_current_hi,u ; point at updated current value
+                    ifdef NITROS9_C3
+                    ldd       ,x
+                    ora       2,x
+                    orb       3,x       ; test all four quotient bytes
+                    else
                     lbsr      isDWordZero ; test whether quotient reached zero
+                    endc
                     bne       ltoa_digit_loop ; keep extracting digits while current != 0
 
 * if (sign) *buffer++ = '-';
@@ -106,9 +144,13 @@ ltoa_terminate
 
 * reverse(orig);
                     ldd       stk_ltoa_orig_buffer,u ; pass original buffer pointer
+                    ifndef NITROS9_C3
                     pshs      d         ; push reverse() argument
+                    endc
                     lbsr      _reverse  ; reverse digits into printable order
+                    ifndef NITROS9_C3
                     leas      2,s       ; discard reverse() argument
+                    endc
 
 * return orig;
                     ldd       stk_ltoa_orig_buffer,u ; return original output buffer pointer

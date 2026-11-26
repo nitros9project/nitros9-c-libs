@@ -26,8 +26,7 @@ stk_fdopen_mode     equ       6         ; stdio mode string after entry prologue
                     ldu       #0        ; request automatic FILE slot allocation
                     ldx       stk_fdopen_mode,s ; load mode string pointer
                     ldd       stk_fdopen_fd,s ; load existing OS-9 path number
-                    lbsr      setiob    ; bind the existing path number to a FILE structure
-                    puls      u,pc      ; restore U and return FILE pointer
+                    bra       open_bind ; share FILE binding and return frame
 
 _fopen:
 stk_fopen_saved_u   equ       0         ; saved U after entry prologue
@@ -40,9 +39,7 @@ stk_fopen_mode      equ       6         ; stdio mode string after entry prologue
                     lbsr      openit    ; open or create the path according to the mode string
                     bmi       open1     ; return NULL when the low-level open helper failed
                     ldu       #0        ; request automatic FILE slot allocation
-                    ldx       stk_fopen_mode,s ; reload mode string pointer for FILE setup
-                    lbsr      setiob    ; allocate or find a free FILE entry for the new path
-                    puls      u,pc      ; restore U and return FILE pointer
+                    bra       open_mode ; share mode reload, FILE binding and return frame
 open1
                     clra                ; return NULL high byte
                     clrb                ; return NULL low byte
@@ -64,8 +61,8 @@ stk_freopen_stream  equ       8         ; FILE * stream to reuse after entry pro
                     lbsr      openit    ; reopen the path using the supplied mode string
                     bmi       open1     ; return NULL when the low-level open helper failed
                     ldu       stk_freopen_stream,s ; reuse caller's FILE object
-                    ldx       stk_freopen_mode,s ; reload mode string pointer for FILE setup
-                    lbsr      setiob    ; reinitialize the existing FILE structure for the reopened path
+open_mode           ldx       stk_freopen_mode,s ; same mode offset in all three entry frames
+open_bind           lbsr      setiob    ; bind the path and return FILE pointer
                     puls      u,pc      ; restore U and return FILE pointer
 
 * input:
@@ -77,7 +74,7 @@ stk_freopen_stream  equ       8         ; FILE * stream to reuse after entry pro
 setiob
 stk_setiob_path     equ       0         ; saved OS-9 path number after PSHS D
                     pshs      d         ; preserve path number while finding/configuring FILE
-                    cmpu      #0        ; did caller supply a FILE pointer?
+                    stu       -2,s      ; test U using the next call's return-address slot
                     bne       setiob3   ; skip the FILE-slot search when the caller supplied one explicitly
                     leau      __iob+FILE_USER_OFFSET,y ; start at first non-stdio FILE entry
                     lda       #FILE_USER_COUNT ; number of dynamic FILE entries to scan
