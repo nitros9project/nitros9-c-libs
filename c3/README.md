@@ -10,7 +10,7 @@ Build the host C3 frontend from `nitros9project/nitros9-languages` and put
 later is required. No CMOC compiler or CMOC library is required.
 
 ```sh
-make -C /path/to/nitros9-languages/c3/build/unix
+make -C /path/to/nitros9-languages/c3/build/unix CPPFLAGS=-D_DEFAULT_SOURCE
 python3 c3/build.py --c3 /path/to/nitros9-languages/c3
 python3 -m unittest discover -s c3/tests -p 'test_*.py'
 python3 c3/test.py --c3 /path/to/nitros9-languages/c3

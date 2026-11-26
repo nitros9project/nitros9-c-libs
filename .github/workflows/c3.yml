@@ -16,7 +16,7 @@ jobs:
           ref: 9fe3ec0738c62324bdbe75e20a97630cbe7540d8
           path: .c3-toolchain
       - name: Build C3 host tools
-        run: make -C .c3-toolchain/c3/build/unix
+        run: make -C .c3-toolchain/c3/build/unix CPPFLAGS=-D_DEFAULT_SOURCE
       - name: Check build-time ABI selection
         run: python3 -m unittest discover -s c3/tests -p 'test_*.py'
       - name: Build native library and both ABI probes
