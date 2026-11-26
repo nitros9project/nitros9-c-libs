@@ -1,0 +1,32 @@
+name: Native C3
+on:
+  pull_request:
+  push:
+    branches: [master]
+jobs:
+  native-c3:
+    runs-on: ubuntu-latest
+    container:
+      image: jamieleecho/coco-dev:0.83
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.2
+        with:
+          repository: nitros9project/nitros9-languages
+          ref: 9fe3ec0738c62324bdbe75e20a97630cbe7540d8
+          path: .c3-toolchain
+      - name: Build C3 host tools
+        run: make -C .c3-toolchain/c3/build/unix
+      - name: Check build-time ABI selection
+        run: python3 -m unittest discover -s c3/tests -p 'test_*.py'
+      - name: Build native library and both ABI probes
+        run: |
+          python3 c3/build.py --c3 .c3-toolchain/c3
+          python3 c3/test.py --c3 .c3-toolchain/c3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-c3-build
+          path: |
+            c3/out/BUILD.json
+            c3/out/abi-report.json
+            c3/out/tests/results.json

@@ -1,115 +1,96 @@
 #include <ctype.h>
 
+/* Both targets have 16-bit unsigned words and big-endian 32-bit longs.
+ * Accumulate as two words: C3 has no unsigned-long arithmetic type. */
+union number32 {
+    unsigned long value;
+    unsigned word[2];
+};
+
 static int
 digit_value(int ch)
 {
-    if (ch >= '0' && ch <= '9')
-        return ch - '0';
-    if (ch >= 'a' && ch <= 'z')
-        return ch - 'a' + 10;
-    if (ch >= 'A' && ch <= 'Z')
-        return ch - 'A' + 10;
+    if (ch >= '0' && ch <= '9') return ch - '0';
+    if (ch >= 'a' && ch <= 'z') return ch - 'a' + 10;
+    if (ch >= 'A' && ch <= 'Z') return ch - 'A' + 10;
     return -1;
 }
 
-unsigned long
-strtoul(const char *nptr, char **endptr, int base)
+static int
+parse_number(const char *text, char **end, int base, union number32 *value,
+             int *negative)
 {
-    const char *s = nptr;
-    const char *start;
-    unsigned long value = 0;
-    unsigned long cutoff;
-    int cutlim;
-    int digit;
-    int any = 0;
-    int neg = 0;
-
-    while (*s && isspace((unsigned char) *s))
-        s++;
-
-    if (*s == '+' || *s == '-') {
-        neg = (*s == '-');
-        s++;
+    const char *p = text;
+    int digit, any = 0, overflow = 0;
+    long product;
+    unsigned carry;
+    value->word[0] = value->word[1] = 0;
+    *negative = 0;
+    while (*p && (((unsigned) *p) & 255) < 128 && isspace(*p)) p++;
+    if (*p == '+' || *p == '-') {
+        *negative = *p == '-';
+        p++;
     }
-
-    if ((base == 0 || base == 16) && s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) {
-        s += 2;
+    if ((base == 0 || base == 16) && p[0] == '0' &&
+        (p[1] == 'x' || p[1] == 'X') &&
+        digit_value(p[2]) >= 0 && digit_value(p[2]) < 16) {
+        p += 2;
         base = 16;
-    } else if (base == 0) {
-        base = (s[0] == '0') ? 8 : 10;
-    }
-
-    if (base < 2 || base > 36) {
-        if (endptr)
-            *endptr = (char *) nptr;
-        return 0;
-    }
-
-    start = s;
-    cutoff = ~0UL / (unsigned long) base;
-    cutlim = (int) (~0UL % (unsigned long) base);
-
-    while ((digit = digit_value((unsigned char) *s)) >= 0 && digit < base) {
-        if (value > cutoff || (value == cutoff && digit > cutlim)) {
-            value = ~0UL;
+    } else if (base == 0)
+        base = *p == '0' ? 8 : 10;
+    if (base >= 2 && base <= 36) {
+        while ((digit = digit_value(*p)) >= 0 && digit < base) {
             any = 1;
-            while ((digit = digit_value((unsigned char) *++s)) >= 0 && digit < base)
-                ;
-            break;
+            if (!overflow) {
+                product = (long) value->word[1] * base + digit;
+                value->word[1] = (unsigned) product;
+                carry = (unsigned) (product >> 16);
+                product = (long) value->word[0] * base + carry;
+                if (product > 65535L)
+                    overflow = 1;
+                else
+                    value->word[0] = (unsigned) product;
+            }
+            p++;
         }
-        value = value * (unsigned long) base + (unsigned long) digit;
-        any = 1;
-        s++;
     }
+    if (end) *end = (char *) (any ? p : text);
+    if (overflow) value->word[0] = value->word[1] = 65535U;
+    return overflow;
+}
 
-    if (endptr)
-        *endptr = (char *) (any ? s : nptr);
-
-    if (!any)
-        return 0;
-
-    if (neg)
-        return (unsigned long) (0UL - value);
-
-    return value;
+unsigned long
+strtoul(const char *text, char **end, int base)
+{
+    union number32 value;
+    int negative;
+    int overflow = parse_number(text, end, base, &value, &negative);
+    if (negative && !overflow) {
+        value.word[0] = ~value.word[0];
+        value.word[1] = 0U - value.word[1];
+        if (!value.word[1]) value.word[0]++;
+    }
+    return value.value;
 }
 
 long
-strtol(const char *nptr, char **endptr, int base)
+strtol(const char *text, char **end, int base)
 {
-    const char *s = nptr;
-    unsigned long value;
-    unsigned long max_positive = ((unsigned long) ~0UL) >> 1;
-    unsigned long max_negative = max_positive + 1UL;
-    int neg = 0;
-    char *parsed_end;
-
-    while (*s && isspace((unsigned char) *s))
-        s++;
-    if (*s == '+' || *s == '-') {
-        neg = (*s == '-');
+    union number32 value;
+    int negative;
+    int overflow = parse_number(text, end, base, &value, &negative);
+    if (negative) {
+        if (overflow || value.word[0] > 32768U ||
+            (value.word[0] == 32768U && value.word[1])) {
+            value.word[0] = 32768U;
+            value.word[1] = 0;
+        }
+        value.word[0] = ~value.word[0];
+        value.word[1] = 0U - value.word[1];
+        if (!value.word[1]) value.word[0]++;
+    } else if (overflow || value.word[0] > 32767U) {
+        value.word[0] = 32767U;
+        value.word[1] = 65535U;
     }
-
-    value = strtoul(nptr, &parsed_end, base);
-    if (parsed_end == nptr) {
-        if (endptr)
-            *endptr = (char *) nptr;
-        return 0;
-    }
-
-    if (endptr)
-        *endptr = parsed_end;
-
-    if (neg) {
-        if (value > max_negative)
-            return (long) max_negative;
-        if (value == max_negative)
-            return (long) (0UL - max_negative);
-        return -(long) value;
-    }
-
-    if (value > max_positive)
-        return (long) max_positive;
-
-    return (long) value;
+    return (long) value.value;
 }

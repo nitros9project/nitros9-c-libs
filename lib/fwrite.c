@@ -10,7 +10,7 @@ fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
 	while (count < nmemb) {
 		remaining = size;
 		while (remaining--) {
-			if (putc(*p++, stream) == EOF)
+			if (putc(((unsigned) *p++) & 255, stream) == EOF)
 				return count;
 		}
 		count++;

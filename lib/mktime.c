@@ -6,7 +6,7 @@ extern int _isleap(int year);
 extern unsigned _leaps(int year);
 
 time_t
-mktime(struct tm *tp)
+_mkutc(struct tm *tp)
 {
 	time_t accum;
 	unsigned d;
@@ -28,8 +28,12 @@ mktime(struct tm *tp)
 	accum *= 60;
 	accum += tp->tm_sec;
 
-	if (timezone)
-		accum -= timezone;
-
 	return accum;
+}
+
+time_t
+mktime(struct tm *tp)
+{
+    time_t value = _mkutc(tp);
+    return value == -1L ? value : value - timezone;
 }

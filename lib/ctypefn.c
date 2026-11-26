@@ -34,11 +34,11 @@ isspace(int c)
 int
 toupper(int c)
 {
-    return c & 0xdf;
+    return c >= 'a' && c <= 'z' ? c - ('a' - 'A') : c;
 }
 
 int
 tolower(int c)
 {
-    return c | 0x20;
+    return c >= 'A' && c <= 'Z' ? c + ('a' - 'A') : c;
 }

@@ -148,3 +148,7 @@ recipes/coco3/kerneltrack
 # Python bytecode (compare.py / harness helpers)
 __pycache__/
 *.pyc
+
+# Native C3 build products
+c3/out/
+c3/native-check/
