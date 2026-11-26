@@ -53,6 +53,16 @@ def c_view(text, *, header=False, aliases=None):
     text = re.sub(r'\basm\s*\{([^{}]*)\}', lambda m: '\n#asm\n'+m[1]+'\n#endasm\n', text)
     text = re.sub(r'(\b(?:int|void|char|unsigned|long)\s*\(\s*\*\s*\w+\s*\))\([^()]*\)', r'\1()', text)
     if header:
+        # Dollar aliases can become self-definitions after symbol selection.
+        text = re.sub(r'(?m)^#[ \t]*define[ \t]+(\w+)[ \t]+\1[ \t]*$', '', text)
+        # Legacy stdio exports nonstandard boolean macros. Existing C3 code
+        # defines its own; redefinitions leak diagnostics into optimizer input.
+        text = re.sub(r'(?m)^#[ \t]*define[ \t]+(?:TRUE|FALSE)[^\n]*', '', text)
+        # C3 misparses a function returning a function-pointer typedef as
+        # a pointer variable. OS-9 handler addresses and int are one word;
+        # expose the same D result as an opaque integer in this header view.
+        text = re.sub(r'\bsighandler_t\s+signal\s*\([^;]*\);', 'int signal();', text)
+        text = re.sub(r'\(\(sighandler_t\)\s*([01])\)', r'\1', text)
         text = text.replace('struct os_time;', '').replace('typedef struct os_time _os_time;', '#define _os_time struct os_time')
         # Named ANSI prototype parameters pollute C3's old symbol table. The
         # generated declarations retain result types and use its K&R form.

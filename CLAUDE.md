@@ -396,7 +396,9 @@ settings; supply `--boot-disk IMAGE --firmware SREC --emulator USIM` to execute
 them on the Pico-Thing kernel. The image must support `/dd/startup`. These tests
 are separate from CMOC's `unittest/` and recipe registration. Check both compiler
 profiles when changing shared bodies. Do not add C3 copies of library sources
-or runtime trampolines. Keep canonical assembly implementations in assembly;
+or runtime trampolines. C3 header views expose signal handler values as opaque
+words because C3 cannot declare a function returning a function-pointer typedef.
+Keep canonical assembly implementations in assembly;
 `utime`, `ltoa`, `dirseek`, `bsearch`, and `create` select their native ABI explicitly with
 `NITROS9_C3` and bypass the automatic entry/call lowering passes. C3 compiler-owned
 startup/FP primitives are not libc.
