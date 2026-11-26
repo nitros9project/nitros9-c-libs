@@ -19,6 +19,11 @@ def spec(args='char *p',result='int'):
 
 
 class SourceTests(unittest.TestCase):
+    def test_dollar_alias_cannot_redefine_the_canonical_error_value(self):
+        result=c_view('#define E_BMID 247\n#define E$BMID E_BMID\n',header=True)
+        self.assertEqual(result.count('#define E_BMID'),1)
+        self.assertIn('#define E_BMID 247',result)
+
     def test_stdio_does_not_inject_nonstandard_boolean_macros(self):
         result=c_view('#define TRUE (1)\n#define FALSE (0)\n#define EOF -1\n',header=True)
         self.assertNotIn('TRUE',result)

@@ -53,6 +53,8 @@ def c_view(text, *, header=False, aliases=None):
     text = re.sub(r'\basm\s*\{([^{}]*)\}', lambda m: '\n#asm\n'+m[1]+'\n#endasm\n', text)
     text = re.sub(r'(\b(?:int|void|char|unsigned|long)\s*\(\s*\*\s*\w+\s*\))\([^()]*\)', r'\1()', text)
     if header:
+        # Dollar aliases can become self-definitions after symbol selection.
+        text = re.sub(r'(?m)^#[ \t]*define[ \t]+(\w+)[ \t]+\1[ \t]*$', '', text)
         # Legacy stdio exports nonstandard boolean macros. Existing C3 code
         # defines its own; redefinitions leak diagnostics into optimizer input.
         text = re.sub(r'(?m)^#[ \t]*define[ \t]+(?:TRUE|FALSE)[^\n]*', '', text)
