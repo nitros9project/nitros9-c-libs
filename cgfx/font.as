@@ -1,3 +1,78 @@
+ IFDEF NITROS9_C3
+* C3_RMA_BEGIN
+************************************
+* Font Handling Functions          *
+* Copyright (c) 1989 by Mike Sweet *
+************************************
+
+ ifp1
+* use /dd/defs/os9defs.a
+ endc
+
+ psect font,0,0,0,0,0
+
+* int Font(path,grpnum,bufnum)
+* int path,grpnum,bufnum;
+
+Font:
+ pshs u,b
+ lda 6,s
+ ldb 8,s
+ pshs d
+ ldd #$1b3a
+ pshs d
+ ldu #4
+ leax ,s
+ lda 4,s
+ lbsr _cgfx_write
+ leas 5,s
+ bra os9err0
+
+* int TCharSw(path,bsw)
+* int path,bsw;
+
+TCharSw:
+ ldx #$1b3c
+ bra send3
+
+* int BoldSw(path,bsw)
+* int path,bsw;
+
+BoldSw:
+ ldx #$1b3d
+ bra send3
+
+* int PropSw(path,bsw)
+* int path,bsw;
+
+PropSw:
+ ldx #$1b3f
+
+send3 pshs u
+ leas -3,s
+ stx ,s
+ lda 8,s
+ sta 2,s
+ ldu #3
+ leax ,s
+ tfr b,a
+ lbsr _cgfx_write
+ leas 3,s
+
+os9err0 puls u
+ bcc noerr0
+ clra
+ std errno,y
+ ldd #-1
+ rts
+noerr0 clra
+ clrb
+ rts
+
+ endsect
+
+* C3_RMA_END
+ ELSE
         section code
 
 __cgfx_font              EXPORT * export this symbol
@@ -59,3 +134,5 @@ noerr0  clra * clear A
         rts * return to caller
 
         endsect * end current section
+
+ ENDC

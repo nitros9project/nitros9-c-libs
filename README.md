@@ -7,7 +7,7 @@ CGFX library is based on Mike Sweet's CGFX7 library.
 | Toolchain | Libraries | Build |
 | --- | --- | --- |
 | CMOC | `libc.a`, floating-point `libcf.a`, and `libcgfx.a` | `make libs` |
-| C3 (native register ABI) | `c3/out/libc3.a` | `python3 c3/build.py --c3 /path/to/nitros9-languages/c3` |
+| C3 (native register ABI) | core, full floating stdio, CGFX, termcap, assembly utilities, debug | `python3 c3/build.py --c3 /path/to/nitros9-languages/c3` |
 | LLVM with picolibc | `libcmoc_os9_compat.a` and optional `libcmoc_os9_float.a` | `make -C llvm` |
 
 [CMOC](https://perso.b2b2c.ca/~sarrazip/dev/cmoc.html) is Pierre Sarrazin's
@@ -42,7 +42,12 @@ without building or linking C3's old local C library. See [c3/README.md](c3/READ
 for kernel tests, ABI details, and the measured [application sizes](c3/SIZE-COMPARISON.md).
 The size report includes per-member linker-map accounting; `c3/size_report.py`
 checks that loaded sections plus header/name/CRC reconcile to the complete module.
-CGFX and the CMOC floating stdio archive are not C3 targets.
+C3 also builds `libc3f.a`, `libcgfx.a`, `libtermcap.a`, `libalib.a`, and `libdbg.a`.
+The scanner, atof, transcendental math, and graphics routines preserve their
+assembly implementations; floating boundaries use C3 binary64. See
+[c3/PORT-PARITY.json](c3/PORT-PARITY.json) for migration provenance and the
+incomplete or inactive baseline files. `c3/parity.py` tests the migrated APIs
+at both optimization levels, optionally on the OS-9 kernel.
 
 ## Building with CMOC
 
@@ -172,7 +177,7 @@ historical Kreider and CGFX components.
 The `llvm/` directory provides an LLVM-native compatibility library alongside
 picolibc, covering all 280 callable declarations in the active C library
 headers. It includes OS-9 extensions, IEEE float/double math, numeric conversion,
-and an optional floating stdio profile. CGFX remains CMOC-only.
+and an optional floating stdio profile. CGFX is available for CMOC and C3; the LLVM profile does not include it.
 
 You need a Clang build supporting `mc6809-unknown-os9`, LLVM archive/link tools,
 and an installed OS-9 picolibc sysroot. After building picolibc, install it into

@@ -12,6 +12,12 @@
  * @brief Conversion, allocation, sorting, and utility routines.
  */
 
+#ifdef NITROS9_C3
+/* Legacy OS-9 environment-file API; putenv takes two arguments. */
+char *getenv(const char *name);
+int putenv(const char *name, const char *value);
+#endif
+
 /**
  * @brief Return the next pseudo-random value.
  *
@@ -34,7 +40,10 @@ void srand(unsigned seed);
  */
 int      abs(int value);
 
-#if defined(_CMOC_MC6839_) || defined(_CMOC_NATIVE_FLOAT_)
+#ifdef NITROS9_C3
+double atof(const char *str);
+double scale(double value, int power, int multiply);
+#elif defined(_CMOC_MC6839_) || defined(_CMOC_NATIVE_FLOAT_)
 /**
  * @brief Convert a string to a floating-point value.
  *

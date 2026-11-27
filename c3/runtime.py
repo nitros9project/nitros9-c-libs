@@ -18,6 +18,9 @@ def stage(c3, archive, destination):
         target=destination/(name+'.s');target.write_bytes(assembly)
         run(['lwasm','--format=obj','-o',destination/(name+'.o'),target],cwd=destination)
     shutil.copy2(archive,destination/'libc3.a')
+    for name in ('libc3f.a','libcgfx.a','libtermcap.a','libalib.a','libdbg.a'):
+        source=Path(archive).parent/name
+        if source.exists():shutil.copy2(source,destination/name)
     helpers=destination/'libc3lw.a';helpers.unlink(missing_ok=True)
     run(['lwar','-c',helpers,destination/'fpwrap.o'],cwd=destination)
     return destination

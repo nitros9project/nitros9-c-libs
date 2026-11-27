@@ -6,7 +6,12 @@
  * @brief Floating-point and trigonometric functions for CMOC OS-9.
  */
 
-#if defined(_CMOC_MC6839_)
+#if defined(NITROS9_C3)
+double acos(), asin(), atan(), sin(), cos(), tan();
+double pow(), sinh(), cosh(), tanh(), asinh(), acosh(), atanh();
+double exp(), antilg(), log10(), log(), trunc(), sqrt(), sqr(), inv();
+double dexp(), dabs(), fabs();
+#elif defined(_CMOC_MC6839_)
 /**
  * @brief Trigonometric, exponential, logarithmic, and utility functions
  * backed by the MC6839 floating-point runtime.
@@ -36,6 +41,10 @@ double dexp(double), dabs(double);
  * @param degrees Angle in degrees.
  * @return Converted angle value.
  */
-int    rad(int degrees), deg(int radians);
+#ifdef NITROS9_C3
+int rad(), deg();
+#else
+int rad(int degrees), deg(int radians);
+#endif
 
 #endif

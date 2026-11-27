@@ -211,12 +211,24 @@ case_f1 pshs    x               stack *variable
 		pshs    d               stack precision
 		ldb     -1,u 
 		clra   
+#ifdef NITROS9_C3
+        * First argument stays in D; the cursor and precision are stacked.
+        * Preserve the reset value while keeping the specifier for the call.
+        pshs d
+        clrb
+        lda #$7D
+        std fraccnt+8,s
+        puls d
+        lbsr _pffloat
+        leas 4,s
+#else
 		pshs    d 
 		clrb
 		lda     #$7D
 		std     fraccnt+8,s     reset after staging all three arguments
 		lbsr    _pffloat
 		leas    6,s
+#endif
 		tfr     d,u
 		lbra    case_x8 
 

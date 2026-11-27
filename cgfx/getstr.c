@@ -3,7 +3,9 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifndef WT_DBOX
 #define WT_DBOX 4
+#endif
 
 static struct sgbuf opts;
 

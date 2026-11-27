@@ -66,8 +66,7 @@ The compiler still owns its CRT and MC6839 floating arithmetic primitives.
 `runtime.py` stages these from the compiler sources for tests; it does not build
 `c3/lib/` or use an existing `libc3.a`. The default printf float stub emits no
 floating text and advances past C3's eight-byte promoted argument, matching the
-existing C3 non-floating stdio profile. This is not a C3 CGFX or full floating
-stdio port.
+existing C3 non-floating stdio profile. Optional `libc3f.a` provides the full binary64 formatter.
 
 ## Kernel verification
 
@@ -91,3 +90,56 @@ The application comparison uses the separate 6809-c-benchmarks suite, with
 identical prepared application sources and compiler revision for the old and
 new libraries. See [SIZE-COMPARISON.md](SIZE-COMPARISON.md) and its reproducible
 `size_report.py` linker-map audit. The new modules are 28–140 bytes smaller; the report accounts for every byte.
+
+## Migrated C3 features
+
+The canonical source now includes the old C3 scanner and decimal conversion,
+CORDIC transcendental math, CGFX assembly and window helpers, ttytype lookup and
+termcap parameter expansion, register-ABI assembler utilities, and debug tracing.
+`PORT-PARITY.json` records the baseline commit, source paths, and original hashes.
+The unfinished FLEX termcap skeleton and archive-excluded alternate stat/allocator
+files supplied no working archive feature in that baseline. Compiler startup and
+integer/MC6839 arithmetic primitives remain compiler-owned.
+
+| Archive | C3 linker argument | Purpose |
+| --- | --- | --- |
+| `libc3.a` | default | Core, scanf, atof, math; compact printf float stub |
+| `libc3f.a` | `-l=fp.l` or `-l=clibf.l` | Full `%f`, `%e`, `%g`; MC6839 initialization |
+| `libcgfx.a` | `-l=cgfx.l` | Native C3 CGFX and window helpers |
+| `libtermcap.a` | `-l=termcap.l` | `tparam`, `tgoto`, `crtbynam`, `crtbypth` |
+| `libalib.a` | `-l=alib.l` | Historical assembly register API, not C-callable |
+| `libdbg.a` | `-l=dbg.l` | Historical interactive trace hooks |
+
+Use the updated compiler linker from nitros9-languages PR #23. Floating execution
+requires the MC6839 FPO9 module on the target. The default compact formatter does
+not change. `pffinit()` remains a floating-profile link anchor. The math port keeps
+the original algorithms and legacy domain/range behavior; binary64 boundaries do
+not turn it into a new correctly-rounded IEEE libm.
+
+Graphics C and assembly bodies share canonical files with CMOC. Native branches
+adjust arguments in the existing routines, without ABI wrappers. Long modern API
+names map to historical C3 entry names where their signatures agree; differing
+GetStat/mapping contracts retain direct native assembly entries. Compatibility
+headers share canonical declarations. C3 still has its existing global structure
+member-name restriction: the historical WINDOW header and OBJECT declaration use
+incompatible `border` members, so compile those interfaces in separate units.
+
+The environment-file API retains `/dd/sys/env.file`, `_ENVFILE`, case-insensitive
+names, and two-argument `putenv(name,value)`. Missing names return NULL; replacement
+checks capacity, handles overlap, terminates the result, and truncates the file.
+The register archive retains its original register contracts; the LWTOOLS syntax
+view spells `DECTAB$` as `DECTAB_d` and dollar/dot OS-9 constants with underscores.
+Native RMA packaging preserves the original register-archive symbol spellings.
+
+Run the feature probes with both optimizer settings:
+
+```sh
+python3 c3/parity.py --c3 /path/to/c3
+python3 c3/parity.py --c3 /path/to/c3 --boot-disk boot.dsk \
+  --firmware rel_picothing.srec --emulator usim09pt --fpo9 Float09.bin
+```
+
+The kernel run checks real file scanning, binary64 conversions/math/formatting,
+graphics command packets, overlapping copies, terminal parameter expansion,
+environment-file persistence, legacy system calls, and register-ABI arithmetic.
+These complement the existing core ABI probe and CMOC unit/graphics suites.

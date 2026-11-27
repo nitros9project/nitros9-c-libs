@@ -1,5 +1,6 @@
 """Build-time syntax and symbol selection for the native C3 compiler."""
 import hashlib
+import json
 from pathlib import Path
 import re
 
@@ -7,10 +8,18 @@ ROOT = Path(__file__).resolve().parents[1]
 TOKENS = re.compile(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|[A-Za-z_]\w*(?:\$\w+)?', re.S)
 
 
+def split_declarations(text):
+    pattern = re.compile(r'(?m)^([ \t]*(?:extern[ \t]+)?(?:void|int|unsigned|long|float|double|char)[ \t*]+)([A-Za-z_]\w*\([^;{}]*\)[ \t]*);')
+    def split(match):
+        declarations = re.split(r'(?<=\)),[ \t]*(?=[A-Za-z_]\w*\()', match[2])
+        return '\n'.join(match[1]+part+';' for part in declarations)
+    return pattern.sub(split,text)
+
+
 def interfaces():
     result = {}
-    for path in sorted((ROOT / 'include').rglob('*.h')):
-        text = re.sub(r'/\*.*?\*/', '', path.read_text(), flags=re.S)
+    for path in sorted([*(ROOT / 'include').rglob('*.h'), *(ROOT / 'cgfx/include').rglob('*.h')]):
+        text = split_declarations(re.sub(r'/\*.*?\*/', '', path.read_text(), flags=re.S))
         for ret, name, args in re.findall(r'(?m)^([A-Za-z_][^\n;{}]*?)\b([A-Za-z_]\w*)\s*\(([^;{}]*?)\);', text, re.S):
             if not ret.strip().startswith('typedef'):
                 result[name] = {'return': ret.strip(), 'args': args.strip()}
@@ -28,12 +37,18 @@ def names():
             candidate = 'n9' + hashlib.sha256(name.encode()).hexdigest()[:6]
         aliases[name] = candidate
         used.add(candidate)
+    # Modern and historical C3 graphics names select the same native body.
+    graphics = json.loads((ROOT/'c3/cgfx_names.json').read_text())
+    for modern, legacy in graphics.items():
+        aliases[modern] = aliases.get(legacy, legacy[:8])
+    aliases['_getsp']='getsp'
     aliases['registers_6809'] = 'os9_regs'
     return aliases
 
 
 def c_view(text, *, header=False, aliases=None):
     aliases = aliases or names()
+    text = text.replace('\f','\n')
     comments = re.compile(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|/\*.*?\*/|//[^\n]*', re.S)
     text = comments.sub(lambda m: '\n'*m[0].count('\n') if m[0].startswith('/*') else '' if m[0].startswith('//') else m[0], text)
     def token(match):
@@ -43,6 +58,14 @@ def c_view(text, *, header=False, aliases=None):
         if word in ('const', 'volatile'):
             return ''
         return aliases.get(word, word.replace('$', '_'))
+    # C3 predates adjacent string-literal concatenation. Resolve it before
+    # compilation, bounding hexadecimal escapes before removing the boundary.
+    literal = r'"(?:\\.|[^"\\])*"'
+    adjacent = re.compile('('+literal+r')(?:[ \t\r\n]+)('+literal+')')
+    def join_literals(match):
+        left=re.sub(r'\\x([0-9a-fA-F]+)',lambda m:'\\%03o' % int(m[1],16),match[1][:-1])
+        return left+match[2][1:]
+    while adjacent.search(text):text=adjacent.sub(join_literals,text)
     text = TOKENS.sub(token, text)
     text = re.sub(r'\bunsigned\s+char\b', 'char', text)
     text = re.sub(r'\bunsigned\s+long\b', 'long', text)
@@ -53,6 +76,7 @@ def c_view(text, *, header=False, aliases=None):
     text = re.sub(r'\basm\s*\{([^{}]*)\}', lambda m: '\n#asm\n'+m[1]+'\n#endasm\n', text)
     text = re.sub(r'(\b(?:int|void|char|unsigned|long)\s*\(\s*\*\s*\w+\s*\))\([^()]*\)', r'\1()', text)
     if header:
+        text = split_declarations(text)
         # Dollar aliases can become self-definitions after symbol selection.
         text = re.sub(r'(?m)^#[ \t]*define[ \t]+(\w+)[ \t]+\1[ \t]*$', '', text)
         # Legacy stdio exports nonstandard boolean macros. Existing C3 code
@@ -72,9 +96,10 @@ def c_view(text, *, header=False, aliases=None):
 
 def write_headers(destination):
     aliases = names()
-    for path in (ROOT / 'include').rglob('*.h'):
-        target = destination / path.relative_to(ROOT / 'include')
+    for folder in (ROOT/'include', ROOT/'cgfx/include'):
+      for path in folder.rglob('*.h'):
+        target = destination / path.relative_to(folder)
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text('#include <c3names.h>\n'+c_view(path.read_text(), header=True, aliases=aliases))
-    (destination / 'c3names.h').write_text('#ifndef NITROS9_C3_NAMES_H\n#define NITROS9_C3_NAMES_H\n'+'\n'.join('#define ' + k + ' ' + v for k, v in aliases.items() if k != v) + '\n#endif\n')
+    (destination / 'c3names.h').write_text('#ifndef NITROS9_C3_NAMES_H\n#define NITROS9_C3_NAMES_H\n#ifndef NITROS9_C3\n#define NITROS9_C3 1\n#endif\n'+'\n'.join('#define ' + k + ' ' + v for k, v in aliases.items() if k != v) + '\n#endif\n')
     return aliases

@@ -1,0 +1,797 @@
+{
+  "baseline_repository": "https://github.com/nitros9project/nitros9-languages",
+  "baseline_revision": "140cb20127cb294373eaedaa05b9ff6a12d995a0",
+  "migrated_sources": [
+    {
+      "old": "c3/lib/lib.a/scanf.a",
+      "canonical": "lib/scanf.a",
+      "group": "formatted-input",
+      "original_sha256": "b6c87f849e5984b078aed19986c42e1c5bbeeba05acb0fb547b1c8d29861bdf3"
+    },
+    {
+      "old": "c3/lib/tmath/daddsub.a",
+      "canonical": "math/daddsub.a",
+      "group": "transcendental-math",
+      "original_sha256": "227113b10658d6c204998ae6a0be842773570f410b45649de73a1a8eaddda3d1"
+    },
+    {
+      "old": "c3/lib/tmath/dcmpr.a",
+      "canonical": "math/dcmpr.a",
+      "group": "transcendental-math",
+      "original_sha256": "df6fbb27477034d717ac9a41295ae7f3c4d6eae5cc3b232a8e961fbcffce5382"
+    },
+    {
+      "old": "c3/lib/tmath/ddiv.a",
+      "canonical": "math/ddiv.a",
+      "group": "transcendental-math",
+      "original_sha256": "277182ff865812b1d0b9216cc88b4c3283b0310c422337b6c2c91c8fd1aaf41c"
+    },
+    {
+      "old": "c3/lib/tmath/dinc.a",
+      "canonical": "math/dinc.a",
+      "group": "transcendental-math",
+      "original_sha256": "b5bf60362a47bb4b91ef8bbffc80e2ef840472b10c04e226c6b6b33e6f1f3373"
+    },
+    {
+      "old": "c3/lib/tmath/dmul.a",
+      "canonical": "math/dmul.a",
+      "group": "transcendental-math",
+      "original_sha256": "16b20386a8d57c95fa6b8a5dee23958ff7ed8c9e9521ffe4cc52e35776f78619"
+    },
+    {
+      "old": "c3/lib/tmath/dser.a",
+      "canonical": "math/dser.a",
+      "group": "transcendental-math",
+      "original_sha256": "f58cdb390713c8c1f57af617a7ace570377af78cd80deb44437497b86e06ca23"
+    },
+    {
+      "old": "c3/lib/tmath/dsqrt.a",
+      "canonical": "math/dsqrt.a",
+      "group": "transcendental-math",
+      "original_sha256": "c870aab3e876f3a69f55648a71cc99eab885e8a383acff71206acae7ab02e0be"
+    },
+    {
+      "old": "c3/lib/tmath/hyp.a",
+      "canonical": "math/hyp.a",
+      "group": "transcendental-math",
+      "original_sha256": "921de134aa9cb05ba6ec3d4ce5bfaafd9cf669b29c6500cdcb57ae7689d34f30"
+    },
+    {
+      "old": "c3/lib/tmath/log.a",
+      "canonical": "math/log.a",
+      "group": "transcendental-math",
+      "original_sha256": "f71a8101ff660a12fec1622c89e3979fc86bc806b1382458b4a04b37f4dc9e67"
+    },
+    {
+      "old": "c3/lib/tmath/mdefs.a",
+      "canonical": "math/mdefs.a",
+      "group": "transcendental-math",
+      "original_sha256": "f7ed6f149e11d9af80d6105065bda3006a5b2a862c165050437491a3cd4e38a3"
+    },
+    {
+      "old": "c3/lib/tmath/trig.a",
+      "canonical": "math/trig.a",
+      "group": "transcendental-math",
+      "original_sha256": "e1eed1aff873bd65c8dfbf872a089f02c0e24acf2185c7f59db87c50e0076903"
+    },
+    {
+      "old": "c3/lib/tmath/trnser.a",
+      "canonical": "math/trnser.a",
+      "group": "transcendental-math",
+      "original_sha256": "0ac9e61ed0e271098406471c13a443f4be381b6e39e4f53348b77833eff0f764"
+    },
+    {
+      "old": "c3/lib/cgfx/getenv.c",
+      "canonical": "lib/getenv.c",
+      "group": "environment",
+      "original_sha256": "fc7e0e56703f0a7707ff5429ce8cf14d5747fade358f9e1eb9acd88945758d32"
+    },
+    {
+      "old": "c3/lib/termcap/crtbynam.c",
+      "canonical": "termcap/crtbynam.c",
+      "group": "termcap",
+      "original_sha256": "330f1c0117ca27aae983d6033f62a8dae23a091ba534eeda8b620198ca8d62c8"
+    },
+    {
+      "old": "c3/lib/termcap/crtbypth.c",
+      "canonical": "termcap/crtbypth.c",
+      "group": "termcap",
+      "original_sha256": "a65181a74d15cf165fd2a599718b885389242e7c4c1fea370c6759417b561498"
+    },
+    {
+      "old": "c3/lib/termcap/tparam.c",
+      "canonical": "termcap/tparam.c",
+      "group": "termcap",
+      "original_sha256": "b91455d83bb907245d40e67c98c99567c0293674d0bc171aa715fbe260b722fc"
+    },
+    {
+      "old": "c3/lib/termcap/ttydefs.h",
+      "canonical": "termcap/ttydefs.h",
+      "group": "termcap",
+      "original_sha256": "c584e1e551df843aeab67f1de260ca0a20e2cbfaa0e54dfdb53eddf34f14c843"
+    },
+    {
+      "old": "c3/lib/rmalib/asc_bin.a",
+      "canonical": "asm/asc_bin.a",
+      "group": "assembler-utilities",
+      "original_sha256": "42e9e9161d6f50b505f4e71cf551459569da6372f278b0000766cd611aa59356"
+    },
+    {
+      "old": "c3/lib/rmalib/b09strlen.a",
+      "canonical": "asm/b09strlen.a",
+      "group": "assembler-utilities",
+      "original_sha256": "8872b48b1e726191b4010b46398e38a4909ef71ac09e6501b717c3277e35e05d"
+    },
+    {
+      "old": "c3/lib/rmalib/bin2hex.a",
+      "canonical": "asm/bin2hex.a",
+      "group": "assembler-utilities",
+      "original_sha256": "115335619d2b4e85347046704a0dccc965f0927e447aabd2a945dfcb6c0c4bbe"
+    },
+    {
+      "old": "c3/lib/rmalib/bin_asc.a",
+      "canonical": "asm/bin_asc.a",
+      "group": "assembler-utilities",
+      "original_sha256": "bd6d2f55831d1b3be5d2359ecefb18019629c5703803f61ba126f43c688eaa3a"
+    },
+    {
+      "old": "c3/lib/rmalib/bin_dec.a",
+      "canonical": "asm/bin_dec.a",
+      "group": "assembler-utilities",
+      "original_sha256": "73173adb040b848532d07ef07a0bf4a7f3255954fe2b0ac8eb08bb4cb43211aa"
+    },
+    {
+      "old": "c3/lib/rmalib/bin_hex.a",
+      "canonical": "asm/bin_hex.a",
+      "group": "assembler-utilities",
+      "original_sha256": "77825244696e3c7064e5f17e167b3153907bdfc9e89deb528972cc09d2afa74e"
+    },
+    {
+      "old": "c3/lib/rmalib/bin_rom.a",
+      "canonical": "asm/bin_rom.a",
+      "group": "assembler-utilities",
+      "original_sha256": "a7c1037a4060d5729391dc331952107b3b2a99c67afa1151ff3e0112b8e12ae2"
+    },
+    {
+      "old": "c3/lib/rmalib/compare.a",
+      "canonical": "asm/compare.a",
+      "group": "assembler-utilities",
+      "original_sha256": "1250bb14101a15ab0774cc6f1f64d13dd62db25c4711d87eb8c9dbcc4324a362"
+    },
+    {
+      "old": "c3/lib/rmalib/datestr.a",
+      "canonical": "asm/datestr.a",
+      "group": "assembler-utilities",
+      "original_sha256": "a72e087a5b7e5ec6a8ddc4336f38e39c775d628c6ea15a8118a37fd8cc6062a4"
+    },
+    {
+      "old": "c3/lib/rmalib/dec_bin.a",
+      "canonical": "asm/dec_bin.a",
+      "group": "assembler-utilities",
+      "original_sha256": "6f558bb28e2e56f6821250f9913c790adb3417cf6a2afafc7d66fdca1927eb3a"
+    },
+    {
+      "old": "c3/lib/rmalib/dectab.a",
+      "canonical": "asm/dectab.a",
+      "group": "assembler-utilities",
+      "original_sha256": "cfc6c92c6529be654e00ac98045b685c27a69d593c0967c317cdbf56ea1ef4c7"
+    },
+    {
+      "old": "c3/lib/rmalib/div16x16.a",
+      "canonical": "asm/div16x16.a",
+      "group": "assembler-utilities",
+      "original_sha256": "5ef70e7523cb3ec9978882d39f963f4812853967f8352a95f173f9a552f9e2a9"
+    },
+    {
+      "old": "c3/lib/rmalib/div16x8.a",
+      "canonical": "asm/div16x8.a",
+      "group": "assembler-utilities",
+      "original_sha256": "fbe1d4305b1c9484e3bebcab55f3e9ff39a01f763081be5ec463939d60f2316b"
+    },
+    {
+      "old": "c3/lib/rmalib/div8x8.a",
+      "canonical": "asm/div8x8.a",
+      "group": "assembler-utilities",
+      "original_sha256": "b13f70334dd0a048671b18cb5fcb6c6d7ed47d2515114fa491d4cb007bc4cb6c"
+    },
+    {
+      "old": "c3/lib/rmalib/fgetc.a",
+      "canonical": "asm/fgetc.a",
+      "group": "assembler-utilities",
+      "original_sha256": "789c2c1b91b95d3a3327e70d6f7b3b400898825a03992af160ba3b43f0a0403e"
+    },
+    {
+      "old": "c3/lib/rmalib/fgets.a",
+      "canonical": "asm/fgets.a",
+      "group": "assembler-utilities",
+      "original_sha256": "302ce21ddfde4c8b60e8f3036bb3043a8d9dbb7d2fee31b3921b1291a3cd0bdb"
+    },
+    {
+      "old": "c3/lib/rmalib/fgety.a",
+      "canonical": "asm/fgety.a",
+      "group": "assembler-utilities",
+      "original_sha256": "951943e19657912a45c05ee7e59c9674b9682da8c0649a4f3c9ad8d8798090cb"
+    },
+    {
+      "old": "c3/lib/rmalib/fputc.a",
+      "canonical": "asm/fputc.a",
+      "group": "assembler-utilities",
+      "original_sha256": "186644118ffe6ee0b09be99db501c93557bce8cd019aa18119b0b124f965cc3f"
+    },
+    {
+      "old": "c3/lib/rmalib/fputcr.a",
+      "canonical": "asm/fputcr.a",
+      "group": "assembler-utilities",
+      "original_sha256": "22b2a1aa57d9a060b01a07922973f5da917e9b0e769af3375f4432b22ccbd5dd"
+    },
+    {
+      "old": "c3/lib/rmalib/fputs.a",
+      "canonical": "asm/fputs.a",
+      "group": "assembler-utilities",
+      "original_sha256": "31185d73432c9a9bac1f74500b0e132f93587c31e1be0202580f738085896b96"
+    },
+    {
+      "old": "c3/lib/rmalib/fputspace.a",
+      "canonical": "asm/fputspace.a",
+      "group": "assembler-utilities",
+      "original_sha256": "5073c57bcdc62e14b5cc0cb5715af4879517229fbdca847b22f1836f553b6c87"
+    },
+    {
+      "old": "c3/lib/rmalib/fputy.a",
+      "canonical": "asm/fputy.a",
+      "group": "assembler-utilities",
+      "original_sha256": "b30883b4927bfb53e8759fb8673e43824395d34b5a202b3ba8ba646cbb6bf116"
+    },
+    {
+      "old": "c3/lib/rmalib/frewind.a",
+      "canonical": "asm/frewind.a",
+      "group": "assembler-utilities",
+      "original_sha256": "7a8d9bb456d7af939d3842a575bbf920c2f247b4a044e6c09a2c073f07227769"
+    },
+    {
+      "old": "c3/lib/rmalib/ftoeof.a",
+      "canonical": "asm/ftoeof.a",
+      "group": "assembler-utilities",
+      "original_sha256": "3ef1db85ea842bc054a9ce9d7ac9515eaa73c4067e568cdd0094d8f349fb8ff7"
+    },
+    {
+      "old": "c3/lib/rmalib/ftrans.a",
+      "canonical": "asm/ftrans.a",
+      "group": "assembler-utilities",
+      "original_sha256": "5c6cc5e824ae04419475406c736d547d8c34e21c130d1abce1c2fcc0066e15cd"
+    },
+    {
+      "old": "c3/lib/rmalib/getc.a",
+      "canonical": "asm/getc.a",
+      "group": "assembler-utilities",
+      "original_sha256": "875b53d3251b254b77511d5c2756959681c8e0d4cb0ee63437bac99893118cde"
+    },
+    {
+      "old": "c3/lib/rmalib/getfmd.a",
+      "canonical": "asm/getfmd.a",
+      "group": "assembler-utilities",
+      "original_sha256": "907f4293e7e3717edbcd61b23624f9105e20a01fd60ee331ad259711ddc33e8b"
+    },
+    {
+      "old": "c3/lib/rmalib/gets.a",
+      "canonical": "asm/gets.a",
+      "group": "assembler-utilities",
+      "original_sha256": "fe30aa4c117c64261f3a6a24befc3df35c92a538e5fffbc446eb0b58f5e8c3b6"
+    },
+    {
+      "old": "c3/lib/rmalib/gety.a",
+      "canonical": "asm/gety.a",
+      "group": "assembler-utilities",
+      "original_sha256": "78dfeae191fc31829bae82d0d71457b739998891fd93ea8823da92f0648963dc"
+    },
+    {
+      "old": "c3/lib/rmalib/hex_bin.a",
+      "canonical": "asm/hex_bin.a",
+      "group": "assembler-utilities",
+      "original_sha256": "2c433105a28110d302be7affd2315a3d373608ccca26d96f393f9eae2efcf936"
+    },
+    {
+      "old": "c3/lib/rmalib/inkey.a",
+      "canonical": "asm/inkey.a",
+      "group": "assembler-utilities",
+      "original_sha256": "f8baed80fb76d55b797ccfb86f10108654cb3d4c2ca7a222396d666a483f7187"
+    },
+    {
+      "old": "c3/lib/rmalib/is_alnum.a",
+      "canonical": "asm/is_alnum.a",
+      "group": "assembler-utilities",
+      "original_sha256": "3d1490717011b7712d476cf40bd8922acb27dcbabc976a085fb7591ab0414b1f"
+    },
+    {
+      "old": "c3/lib/rmalib/is_alpha.a",
+      "canonical": "asm/is_alpha.a",
+      "group": "assembler-utilities",
+      "original_sha256": "9d21f281dd05ea5f723dc5c85f6b25740a7ebb9d0bea9096f99470cb04fce5e4"
+    },
+    {
+      "old": "c3/lib/rmalib/is_cntrl.a",
+      "canonical": "asm/is_cntrl.a",
+      "group": "assembler-utilities",
+      "original_sha256": "72e0db82a67fccd49d209e993ae2a50188ea9dd446601ac329202be39e6ba8d3"
+    },
+    {
+      "old": "c3/lib/rmalib/is_digit.a",
+      "canonical": "asm/is_digit.a",
+      "group": "assembler-utilities",
+      "original_sha256": "65c087e1c9ee4483a5819395ce2718176395d8e279dc8e0c10a1910c10393433"
+    },
+    {
+      "old": "c3/lib/rmalib/is_lower.a",
+      "canonical": "asm/is_lower.a",
+      "group": "assembler-utilities",
+      "original_sha256": "a86f15fa2772de91e1b87604558c7745367a10d0b05953fdf744f6fea0554b7f"
+    },
+    {
+      "old": "c3/lib/rmalib/is_print.a",
+      "canonical": "asm/is_print.a",
+      "group": "assembler-utilities",
+      "original_sha256": "eb15f0caf8377c7e8ad8bc596c6a4e67b6a0ff6a6c5230a0f026d6176446257e"
+    },
+    {
+      "old": "c3/lib/rmalib/is_punct.a",
+      "canonical": "asm/is_punct.a",
+      "group": "assembler-utilities",
+      "original_sha256": "d515099b32220ef6cf6135593df748200f3d48ea6534bb4ad1a2f0be9ea0e9e5"
+    },
+    {
+      "old": "c3/lib/rmalib/is_space.a",
+      "canonical": "asm/is_space.a",
+      "group": "assembler-utilities",
+      "original_sha256": "7ee69736e97da74c2643114827c9aa74ab129d753237d7de846ab74c4e229164"
+    },
+    {
+      "old": "c3/lib/rmalib/is_termin.a",
+      "canonical": "asm/is_termin.a",
+      "group": "assembler-utilities",
+      "original_sha256": "ac7cdf794446fb3000e496f75b02834aec1d7b6750dbb268b36b47ff13bc2fd9"
+    },
+    {
+      "old": "c3/lib/rmalib/is_upper.a",
+      "canonical": "asm/is_upper.a",
+      "group": "assembler-utilities",
+      "original_sha256": "cfca9b5e467bc9f1cc19d6a8c869c8487d2b1a0b9390c0cc268905189a4633d1"
+    },
+    {
+      "old": "c3/lib/rmalib/is_xdigit.a",
+      "canonical": "asm/is_xdigit.a",
+      "group": "assembler-utilities",
+      "original_sha256": "85a85bb5d05d579a2af9940627ceaceab9a04cd48ddc0dc016d19414d3f04972"
+    },
+    {
+      "old": "c3/lib/rmalib/jsr_cmd.a",
+      "canonical": "asm/jsr_cmd.a",
+      "group": "assembler-utilities",
+      "original_sha256": "171c9bc992a427e15aa6cd71868212274b65aff6bc035eec7a6c634c388755ae"
+    },
+    {
+      "old": "c3/lib/rmalib/jsr_cmd2.a",
+      "canonical": "asm/jsr_cmd2.a",
+      "group": "assembler-utilities",
+      "original_sha256": "e85a1c6c05b58b6c0c5af43c03fd404f3c2e54132cd754f99cc80f06b8f3f3d8"
+    },
+    {
+      "old": "c3/lib/rmalib/linedit.a",
+      "canonical": "asm/linedit.a",
+      "group": "assembler-utilities",
+      "original_sha256": "b9bc9245440a1bbe48ba47dd844beee7ddf968c05502ce3276517be6324b5881"
+    },
+    {
+      "old": "c3/lib/rmalib/memmove.a",
+      "canonical": "asm/memmove.a",
+      "group": "assembler-utilities",
+      "original_sha256": "d0f9dee28d04cc1fd54b956542458db82322ab0b1eb8bc349d2acd54c60c2c34"
+    },
+    {
+      "old": "c3/lib/rmalib/memset.a",
+      "canonical": "asm/memset.a",
+      "group": "assembler-utilities",
+      "original_sha256": "3d798c1c8ed0bd2594d58589a1df016d81f45d27d8a62827088ed727565a7871"
+    },
+    {
+      "old": "c3/lib/rmalib/mktemp.a",
+      "canonical": "asm/mktemp.a",
+      "group": "assembler-utilities",
+      "original_sha256": "3595de2d4b55fcbdef5612296010a5bb8022c07480d5a5bc234cf47c641bec0a"
+    },
+    {
+      "old": "c3/lib/rmalib/mult16x16.a",
+      "canonical": "asm/mult16x16.a",
+      "group": "assembler-utilities",
+      "original_sha256": "c7ebf64974989ad861f5683aa1779489f15173d168a14fdb98b51e08d58d6e30"
+    },
+    {
+      "old": "c3/lib/rmalib/mult16x8.a",
+      "canonical": "asm/mult16x8.a",
+      "group": "assembler-utilities",
+      "original_sha256": "b4e9ac2f7e554f08fb8faf5c82724230e0b571d9fb84510d1c908884ab41c81d"
+    },
+    {
+      "old": "c3/lib/rmalib/os9defs.a",
+      "canonical": "asm/os9defs.a",
+      "group": "assembler-utilities",
+      "original_sha256": "a9343d0b22dccc71d13c1861a01c0decb0a6d7d73fecdd744d9c0ead669e5c1f"
+    },
+    {
+      "old": "c3/lib/rmalib/parsnstr.a",
+      "canonical": "asm/parsnstr.a",
+      "group": "assembler-utilities",
+      "original_sha256": "f482e138ee7d0df41c8aafa8297e58a3eea29556ad07942d321f939b52048a09"
+    },
+    {
+      "old": "c3/lib/rmalib/print_asc.a",
+      "canonical": "asm/print_asc.a",
+      "group": "assembler-utilities",
+      "original_sha256": "3974ddd9008fac99de9e6e291e27836cbf3db91d4f01e4441c91a9f57c36d10e"
+    },
+    {
+      "old": "c3/lib/rmalib/print_dec.a",
+      "canonical": "asm/print_dec.a",
+      "group": "assembler-utilities",
+      "original_sha256": "86a5641b946d03872615230040b21d6b85b5a43c211b631aa31a2726a50cc5a1"
+    },
+    {
+      "old": "c3/lib/rmalib/print_hex.a",
+      "canonical": "asm/print_hex.a",
+      "group": "assembler-utilities",
+      "original_sha256": "fdc93766c9325aab6cc8aec698ab5de21ae0ad83becb90bc64ef59f03efb7b2e"
+    },
+    {
+      "old": "c3/lib/rmalib/prints.a",
+      "canonical": "asm/prints.a",
+      "group": "assembler-utilities",
+      "original_sha256": "9f041e7de7e954722abcac3e467be91ca89862c1e50716c04dd651dcce87617f"
+    },
+    {
+      "old": "c3/lib/rmalib/ptsearch.a",
+      "canonical": "asm/ptsearch.a",
+      "group": "assembler-utilities",
+      "original_sha256": "0dbb3b2aac047e95e5c4166e19ef96600a30d92e8351c623ecce46acf4346ee9"
+    },
+    {
+      "old": "c3/lib/rmalib/putc.a",
+      "canonical": "asm/putc.a",
+      "group": "assembler-utilities",
+      "original_sha256": "626341916603c4e56111397519f943f297c930f81a9ffaaac8adfbcb86af6ee9"
+    },
+    {
+      "old": "c3/lib/rmalib/putcr.a",
+      "canonical": "asm/putcr.a",
+      "group": "assembler-utilities",
+      "original_sha256": "ae18009f34ac9d918ee5fb682e4f33099125075ecaca38108843987766d44a6b"
+    },
+    {
+      "old": "c3/lib/rmalib/puts.a",
+      "canonical": "asm/puts.a",
+      "group": "assembler-utilities",
+      "original_sha256": "6142b8c096f911bf1faf139de38f7a49cf55babfbbabf39456f9d03ac03c96a0"
+    },
+    {
+      "old": "c3/lib/rmalib/putspace.a",
+      "canonical": "asm/putspace.a",
+      "group": "assembler-utilities",
+      "original_sha256": "d86b3886b5ddab4aa6bc30d48d49d946bc926905a2be8043dc567bc437b614c0"
+    },
+    {
+      "old": "c3/lib/rmalib/puty.a",
+      "canonical": "asm/puty.a",
+      "group": "assembler-utilities",
+      "original_sha256": "148ad0f56061ac424ccfbaf414243e0d40964a8236665c0e38810b6954abbd94"
+    },
+    {
+      "old": "c3/lib/rmalib/rnd.a",
+      "canonical": "asm/rnd.a",
+      "group": "assembler-utilities",
+      "original_sha256": "e938dacecfebae926986fc36bd55cc41736ae5c9e9d8acfc1fa1a840679599d3"
+    },
+    {
+      "old": "c3/lib/rmalib/sho_regs.a",
+      "canonical": "asm/sho_regs.a",
+      "group": "assembler-utilities",
+      "original_sha256": "f8aeda7865a29292c4c6dd7d7b13d7d1859499d401720f9386e768b4559c6bbb"
+    },
+    {
+      "old": "c3/lib/rmalib/stimestr.a",
+      "canonical": "asm/stimestr.a",
+      "group": "assembler-utilities",
+      "original_sha256": "1deea87776124c9ed13744d0ca62bef81d8192a624449878dcd07197f101851d"
+    },
+    {
+      "old": "c3/lib/rmalib/strcat.a",
+      "canonical": "asm/strcat.a",
+      "group": "assembler-utilities",
+      "original_sha256": "f268e62ee74612b8db6b43442dd25eb54d7f412d18e1c4f336c1603c3284d3d5"
+    },
+    {
+      "old": "c3/lib/rmalib/strcmp.a",
+      "canonical": "asm/strcmp.a",
+      "group": "assembler-utilities",
+      "original_sha256": "4f992a4abf4dc4879c4328f4e430bd2b8543ef05c6b8df2d0a23703238b24351"
+    },
+    {
+      "old": "c3/lib/rmalib/strcpy.a",
+      "canonical": "asm/strcpy.a",
+      "group": "assembler-utilities",
+      "original_sha256": "1e06808d4374b109dc71ab95f238656cba84f9986580b6f20e24930175d43ecf"
+    },
+    {
+      "old": "c3/lib/rmalib/strhcpy.a",
+      "canonical": "asm/strhcpy.a",
+      "group": "assembler-utilities",
+      "original_sha256": "6c96ea8b3845278d14b1fef375bbe0127a9037957d17e099515a568a895acad0"
+    },
+    {
+      "old": "c3/lib/rmalib/strhlen.a",
+      "canonical": "asm/strhlen.a",
+      "group": "assembler-utilities",
+      "original_sha256": "c77522f7cd229a4c62c397a321840faa34287f55a2b2ed54d833b799e99732f6"
+    },
+    {
+      "old": "c3/lib/rmalib/strlen.a",
+      "canonical": "asm/strlen.a",
+      "group": "assembler-utilities",
+      "original_sha256": "c6e0b6a16ca53c72832df453d9614fcba8164891772f47cf8b8edef799b4fd29"
+    },
+    {
+      "old": "c3/lib/rmalib/strncmp.a",
+      "canonical": "asm/strncmp.a",
+      "group": "assembler-utilities",
+      "original_sha256": "21081c08cdf46e5d292a7a8ccfe36478456695bc5745a647418d56cc9172fa0a"
+    },
+    {
+      "old": "c3/lib/rmalib/strncpy.a",
+      "canonical": "asm/strncpy.a",
+      "group": "assembler-utilities",
+      "original_sha256": "8d3931ea2121c0981e7dc116f12572719e293010ce53eca2d678dd10775b37ae"
+    },
+    {
+      "old": "c3/lib/rmalib/test.a",
+      "canonical": "asm/test.a",
+      "group": "assembler-utilities",
+      "original_sha256": "6d13251e133c7cb2e269d0df86af63c7e51c8e36eba4e05895843a6910030cfd"
+    },
+    {
+      "old": "c3/lib/rmalib/to_lower.a",
+      "canonical": "asm/to_lower.a",
+      "group": "assembler-utilities",
+      "original_sha256": "578990471c9816f00e25b194fe273c1f8cb1e77adacfc7d94e42451291a4efdf"
+    },
+    {
+      "old": "c3/lib/rmalib/to_lowrs.a",
+      "canonical": "asm/to_lowrs.a",
+      "group": "assembler-utilities",
+      "original_sha256": "4fe63df61e2a898e5ad8fed4fecb30656612eadd3784d62bfe5d0c5e315b44b5"
+    },
+    {
+      "old": "c3/lib/rmalib/to_non_sp.a",
+      "canonical": "asm/to_non_sp.a",
+      "group": "assembler-utilities",
+      "original_sha256": "f390286483b01f4cb624b8928e2a9ecb8de1c0ddcd176f763f59d01af64b4be0"
+    },
+    {
+      "old": "c3/lib/rmalib/to_upper.a",
+      "canonical": "asm/to_upper.a",
+      "group": "assembler-utilities",
+      "original_sha256": "0f5a223c0495466beb4432a7ce6a5f03a1e8e0e65a81d8187154ebb1df0d04c6"
+    },
+    {
+      "old": "c3/lib/rmalib/to_upprs.a",
+      "canonical": "asm/to_upprs.a",
+      "group": "assembler-utilities",
+      "original_sha256": "4f1a8d55de598deda01176a8bb33abc107d896a7696baecc32587cdf76eef0bc"
+    },
+    {
+      "old": "c3/lib/rmalib/windefs.a",
+      "canonical": "asm/windefs.a",
+      "group": "assembler-utilities",
+      "original_sha256": "89be7c80b874c9b772ab7784c39cf2c01a33436dde70a25bf55f00ad10e56afb"
+    },
+    {
+      "old": "c3/lib/cgfx/alarm.a",
+      "canonical": "cgfx/alarm.c",
+      "original_sha256": "bb8815054cac00e35dc75ef4e840164fc7d45408e69c2cb468b06e501091165d"
+    },
+    {
+      "old": "c3/lib/cgfx/cbuffer.a",
+      "canonical": "cgfx/cbuffer.as",
+      "original_sha256": "82d557fc385f44c27d92a170cdee0108517698820034e6139405ad571b99a0a1"
+    },
+    {
+      "old": "c3/lib/cgfx/config.a",
+      "canonical": "cgfx/config.c",
+      "original_sha256": "d8c8f927caac289a676cb000f66b137ea824ea73f9a26afd821fd4f179ba6758"
+    },
+    {
+      "old": "c3/lib/cgfx/crw.a",
+      "canonical": "cgfx/crw.as",
+      "original_sha256": "3e28da13562c926b09f6d2224db93ac68b33108743068524b03b7d8b099fcc39"
+    },
+    {
+      "old": "c3/lib/cgfx/draw.a",
+      "canonical": "cgfx/draw.c",
+      "original_sha256": "207c4e48ae32673249057e7269c0c66e03d8dc68a4744ac0ec19ccf5343df007"
+    },
+    {
+      "old": "c3/lib/cgfx/drawfunc.a",
+      "canonical": "cgfx/drawfunc.as",
+      "original_sha256": "6cc4cbc736b0b389ab1ce71bc2867aa80c30845f2c92a7294075737ad3e5786d"
+    },
+    {
+      "old": "c3/lib/cgfx/font.a",
+      "canonical": "cgfx/font.as",
+      "original_sha256": "5434e2ec410f16a2c638524a6030e5f68422909ce72af606e449cc9730bd81ec"
+    },
+    {
+      "old": "c3/lib/cgfx/getput.a",
+      "canonical": "cgfx/getput.c",
+      "original_sha256": "557893b088c2c83952a74d45ff503a683b4d9ef3e1da6d44c3596b8db01165db"
+    },
+    {
+      "old": "c3/lib/cgfx/keysense.a",
+      "canonical": "cgfx/keysense.c",
+      "original_sha256": "116da16e5827d96ad2cc2ba84f7918251bb04c611d4bac7a4542cd1311c3f16e"
+    },
+    {
+      "old": "c3/lib/cgfx/mouse.a",
+      "canonical": "cgfx/mouse.c",
+      "original_sha256": "73d9d4b36ddbcf74f39e8a8cc6f3794dde8f2d4ec415b6440333550aa202e2d6"
+    },
+    {
+      "old": "c3/lib/cgfx/mousexy.a",
+      "canonical": "cgfx/mousexy.c",
+      "original_sha256": "b3992756dd723a651a5d9440f278eb9d5398aeb57a3aace6036c72529040add4"
+    },
+    {
+      "old": "c3/lib/cgfx/movemem.a",
+      "canonical": "cgfx/movemem.as",
+      "original_sha256": "1503014e10f82edd6efcf56a334d7b3096c8c7f4d668107dcf3d11a364cc779c"
+    },
+    {
+      "old": "c3/lib/cgfx/mv_window.a",
+      "canonical": "cgfx/mv_window.c",
+      "original_sha256": "be84db1e21a2637839c761d27d84bf74e7bd083f94c3a33e19d06172f9dda191"
+    },
+    {
+      "old": "c3/lib/cgfx/nobuffer.a",
+      "canonical": "cgfx/nobuffer.as",
+      "original_sha256": "a662e6662ce382c57c958a0de30959e02e57288099abab95a6c8e80c25f3fc6b"
+    },
+    {
+      "old": "c3/lib/cgfx/play.a",
+      "canonical": "cgfx/play.as",
+      "original_sha256": "9e4298d5acfb6a2c42609955c3e1033422707a9ce0730691f15c750b7fc77a4f"
+    },
+    {
+      "old": "c3/lib/cgfx/shadow.a",
+      "canonical": "cgfx/shadow.as",
+      "original_sha256": "de6368f9a7b4c2121ac05021607a12b590ff5155f6552156006ec4971877178c"
+    },
+    {
+      "old": "c3/lib/cgfx/sound.a",
+      "canonical": "cgfx/sound.c",
+      "original_sha256": "39f963465870cb1f7936e0f6a05dcfb5189e3b6d0321a6ec24255778fffc2345"
+    },
+    {
+      "old": "c3/lib/cgfx/status.a",
+      "canonical": "cgfx/status.c",
+      "original_sha256": "962ef7b4188c3e001e2ac13b590713f131bba6768db857a717b72cb4589b41b5"
+    },
+    {
+      "old": "c3/lib/cgfx/text.a",
+      "canonical": "cgfx/text.c",
+      "original_sha256": "1810134365ab70c34905043cc9037efe6ebe10b79f4d884e551490f17a418be6"
+    },
+    {
+      "old": "c3/lib/cgfx/window.a",
+      "canonical": "cgfx/window.c",
+      "original_sha256": "0bb14600e70388d039a4b2132697c051ad448f68c2da1f084571ff6dc83d561f"
+    },
+    {
+      "old": "c3/lib/sys.a/mod.a",
+      "canonical": "lib/mod_legacy.a",
+      "group": "legacy-system-api",
+      "original_sha256": "7885a5125414a790f89870c60a18c82d64d15354bf106a013015e13ef4917d1f"
+    },
+    {
+      "old": "c3/lib/sys.a/time.a",
+      "canonical": "lib/time_legacy.a",
+      "group": "legacy-system-api",
+      "original_sha256": "bebf6da6bb68c9228a8a9ef1694aedd776ed430a30ef94ad51736702b2310c90"
+    },
+    {
+      "old": "c3/lib/sys.a/syscall.a",
+      "canonical": "lib/syscall_legacy.a",
+      "group": "legacy-system-api",
+      "original_sha256": "a6a866643e935eefb9e817e895e2f5fb8214138e0583fcc395287d84daf3f4d4"
+    },
+    {
+      "old": "c3/lib/lib.c/dbglib.c",
+      "canonical": "lib/dbglib.c",
+      "group": "debug-trace",
+      "original_sha256": "f712a616ad3289bb4c20cdda0104e18d73444fd4881315d7cb56736adbde74cd"
+    },
+    {
+      "old": "c3/legacy-defs/lowio.h",
+      "canonical": "include/lowio.h",
+      "group": "compatibility-headers",
+      "original_sha256": "c73a0fb3a43a0dc3b88a15fb29c202d6893973952ce114a81a12150f2de1dfae"
+    },
+    {
+      "old": "c3/legacy-defs/phone.h",
+      "canonical": "include/phone.h",
+      "group": "compatibility-headers",
+      "original_sha256": "751c0d82658f570d116a71480eac311486ab2aefbe3dd97fdb82ddb8a8cf44ca"
+    },
+    {
+      "old": "c3/legacy-defs/types.h",
+      "canonical": "include/types.h",
+      "group": "compatibility-headers",
+      "original_sha256": "1ccd7805bb45dd1dc507318b0c511eeec7795639bd76238c70b1db439fcc8ada"
+    },
+    {
+      "old": "c3/legacy-defs/sgstat.h",
+      "canonical": "include/sgstat.h",
+      "group": "compatibility-headers",
+      "original_sha256": "e2af0f1875e13ca81e8b00f6017429c164dd77c976b8796245377758d738df43"
+    },
+    {
+      "old": "c3/legacy-defs/getopt.h",
+      "canonical": "include/getopt.h",
+      "group": "compatibility-headers",
+      "original_sha256": "127d50647bc601dd898bf8ce93c77cc4b35dc9766e632957904ee4b182cf1506"
+    },
+    {
+      "old": "c3/legacy-defs/sgtty.h",
+      "canonical": "include/sgtty.h",
+      "group": "compatibility-headers",
+      "original_sha256": "1a43cd681a14ca36749240ae3fbd4082a112f7714abfd0c334423fe34ae12351"
+    },
+    {
+      "old": "c3/legacy-defs/os9.h",
+      "canonical": "include/os9.h",
+      "group": "compatibility-headers",
+      "original_sha256": "f3e82bde23324d64e02625bdd9821c9a4af4a1d614dab4e3b822ddffa15874ef"
+    },
+    {
+      "old": "c3/legacy-defs/modes.h",
+      "canonical": "include/modes.h",
+      "group": "compatibility-headers",
+      "original_sha256": "d3ff0d8a2a3bbe8f82e7c50295dfdb68f64a2e55f39690dd56d0c49530742c48"
+    },
+    {
+      "old": "c3/legacy-defs/direct.h",
+      "canonical": "include/direct.h",
+      "group": "compatibility-headers",
+      "original_sha256": "7f9637115fb90732317985d486924cdc4acb72499978d81bfa3967346a35f2b5"
+    },
+    {
+      "old": "c3/legacy-defs/stdint.h",
+      "canonical": "include/stdint.h",
+      "group": "compatibility-headers",
+      "original_sha256": "e988a5fc9234cae7d74734696a3c0bb5802dd0b5eef2ad9990f6fdee136b985b"
+    }
+  ],
+  "baseline_incomplete": [
+    {
+      "path": "c3/lib/termcap/termcap.c",
+      "reason": "Unfinished FLEX scanner skeleton; no callable termcap implementation in the baseline."
+    },
+    {
+      "path": "c3/lib/lib.a/stat.a",
+      "reason": "Unused alternate implementation, absent from the baseline archive makefile. The active system library uses OS-9 GetStat."
+    },
+    {
+      "path": "c3/lib/cgfx/malloc.c",
+      "reason": "Compiled prerequisite absent from the CGFX archive member list; the core library supplies allocation."
+    }
+  ],
+  "compiler_owned": [
+    "CRT/startup and stack bookkeeping",
+    "integer compiler helpers",
+    "MC6839 binary64 arithmetic/conversions and initialization"
+  ]
+}

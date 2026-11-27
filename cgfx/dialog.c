@@ -3,8 +3,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#define WT_DBOX 4
-#define WR_CNTNT 0
 
 error_code Flush(void);
 

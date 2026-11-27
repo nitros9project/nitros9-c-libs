@@ -1,0 +1,559 @@
+ psect dser_a,0,0,0,0,0
+ ifp1
+ use mdefs.a
+ endc
+
+ vsect
+_deg: rmb 1
+ rmb WBC*8
+_mthtop: rmb 0
+ endsect
+
+* aprep  preps x,s for +,-,*,/ operators
+
+_aprep: pshs x,y save pointer to op2
+ leax _mthtop,y
+ leay 8,s point to number on stack
+ lbsr _denter
+ bsr _dconv
+ ldy 0,s get original x
+ lbsr _denter
+ bsr _dconv
+ puls y,d get y and scrap old x
+ puls d get our return address
+ std 6,s
+ puls d get callers return clean stack
+ std 6,s
+ leas 4,s
+ rts
+
+
+* dprep does prep for single double on stack
+
+_dprep: pshs y save y
+ leax _mthtop,y
+ leay 6,s get pointer to double on stack
+ lbsr _denter
+ bsr _dconv
+ puls y,pc
+
+
+* bdprep gets two numbers on stack and prepares for math
+
+_bdprep: pshs y
+ leax _mthtop,y
+ leay 6,s get number on stack
+ lbsr _denter
+ bsr _dconv
+ leay -1,y move back one
+ lbsr _denter
+ bsr _dconv
+ puls y,pc
+
+ pag
+* dconv converts from c format to 9 byte format
+
+* Convert IEEE binary64 into the existing 56-bit mantissa / signed exponent.
+* The CORDIC/math bodies retain their original nine-byte working format.
+_dconv: pshs u
+ ldd ,x
+ anda #$7f
+ lsra
+ rorb
+ lsra
+ rorb
+ lsra
+ rorb
+ lsra
+ rorb
+ cmpd #$07ff
+ lbeq _dconv_bad
+ pshs d
+ subd #1022
+ std 0,s
+ lda ,x
+ anda #$80
+ pshs a
+ ldd 1,x
+ std ,x
+ ldd 3,x
+ std 2,x
+ ldd 5,x
+ std 4,x
+ lda 7,x
+ sta 6,x
+ lda ,x
+ anda #$0f
+ ldd 1,s
+ cmpd #-1022
+ beq _dconv_sub
+ lda ,x
+ anda #$0f
+ ora #$10
+ bra _dconv_head
+_dconv_sub lda ,x
+ anda #$0f
+ ldd #-1021
+ std 1,s
+ lda ,x
+ anda #$0f
+_dconv_head sta ,x
+ ldb #3
+_dconv_shift lsl 6,x
+ rol 5,x
+ rol 4,x
+ rol 3,x
+ rol 2,x
+ rol 1,x
+ rol ,x
+ decb
+ bne _dconv_shift
+ lda ,x
+ ora 1,x
+ ora 2,x
+ ora 3,x
+ ora 4,x
+ ora 5,x
+ ora 6,x
+ beq _dconv_zero
+_dconv_norm tst ,x
+ bmi _dconv_done
+ lsl 6,x
+ rol 5,x
+ rol 4,x
+ rol 3,x
+ rol 2,x
+ rol 1,x
+ rol ,x
+ ldd 1,s
+ subd #1
+ std 1,s
+ bra _dconv_norm
+_dconv_done ldd 1,s
+ anda #$7f
+ ora ,s
+ std 7,x
+ leas 3,s
+ puls u,pc
+_dconv_zero ldd #0
+ std ,x
+ std 2,x
+ std 4,x
+ sta 6,x
+ std 7,x
+ leas 3,s
+ puls u,pc
+_dconv_bad ldd #0
+ std ,x
+ std 2,x
+ std 4,x
+ sta 6,x
+ std 7,x
+ puls u,pc
+
+* mret return for all math functions
+
+_mret: lbcs _errz error set to zero
+ lda ,x
+ lbpl _mzer return zero
+ pshs u
+ ldd 7,x
+ lsla
+ asra
+ addd #1022
+ cmpd #2047
+ lbge _mieee_over
+ cmpd #0
+ lble _mieee_under
+ pshs d
+ lda 7,x
+ anda #$80
+ pshs a
+* Round the original 56-bit mantissa to binary64's 53 bits, ties to even.
+ ldb 6,x
+ andb #7
+ cmpb #4
+ blo _mieee_round_done
+ bhi _mieee_round_up
+ ldb 6,x
+ bitb #8
+ beq _mieee_round_done
+_mieee_round_up ldd 5,x
+ addd #8
+ std 5,x
+ ldd 3,x
+ adcb #0
+ adca #0
+ std 3,x
+ ldd 1,x
+ adcb #0
+ adca #0
+ std 1,x
+ lda ,x
+ adca #0
+ sta ,x
+ bcc _mieee_round_done
+ lda #$80
+ sta ,x
+ ldd 1,s
+ addd #1
+ std 1,s
+_mieee_round_done ldb #3
+_mieee_shift lsr ,x
+ ror 1,x
+ ror 2,x
+ ror 3,x
+ ror 4,x
+ ror 5,x
+ ror 6,x
+ decb
+ bne _mieee_shift
+ leau _flacc,y
+ ldd 1,x
+ std 2,u
+ ldd 3,x
+ std 4,u
+ ldd 5,x
+ std 6,u
+ ldd 1,s
+ aslb
+ rola
+ aslb
+ rola
+ aslb
+ rola
+ aslb
+ rola
+ anda #$7f
+ ora ,s
+ pshs d
+ ldb ,x
+ andb #$0f
+ orb 1,s
+ stb 1,s
+ puls d
+ std ,u
+ leas 3,s
+ tfr u,x
+ puls u,pc
+_mieee_over puls u
+ ldd #1
+ bra _errz0
+_mieee_under puls u
+ ldd #-1
+ bra _errz0
+
+_errz0 ldb #40 overflow
+ tsta
+ bpl _errz
+ ldb #43 underflow
+
+_errz pshs b save error code
+ leax _flacc,y
+ ldd #0
+ std ,x
+ std 2,x
+ std 4,x
+ std 6,x
+ puls b get error back
+ clra
+ cmpb #43 underflow?
+ lbne _rpterr
+ std errno,y
+ rts
+
+_mzer
+ leax _flacc,y
+ ldd #0
+ std ,x
+ std 2,x
+ std 4,x
+ std 6,x
+ rts
+ pag
+* _entd ENTERS A + B ON STACK PRESERVING THE SIGN
+* x=x-WBC  y saved
+
+_entd: leax -WBC,x make room
+ cmpd #0 zero?
+ beq _entd5
+ sta ,-s save for sign
+ lda #16 init exp
+ sta MBC+1,x
+ lda ,s recover a
+ bpl _entd1
+ nega make pos
+ negb
+ sbca #0
+ bmi _entd2 no adjust
+_entd1 dec MBC+1,x adjust exp
+ lslb
+ rola
+ bpl _entd1
+
+_entd2 std ,x
+ ldd #0
+ std 2,x
+ std 4,x
+ sta 6,x
+ ldb ,s+ get sign
+ bpl _entd3
+ lda #MS
+_entd3 sta MBC,x
+ rts
+
+_entd5 ldd #0 clear out
+ std ,x
+ std 2,x
+ std 4,x
+ sta 6,x
+ std MBC,x
+ rts
+ pag
+* _exd exits number on x into d.
+* c=1 if abs(number)>32768.
+* x=x+WBC y saved
+
+_exd: ldd MBC,x get exp
+ lsla
+ asra
+ bmi _exd2 exit with zero
+ bne _exd4 exit error
+ lda #15 GET INTEGER PORTION
+ stb ,-s for subtract
+ suba ,s+
+ bcs _exd4 error
+ inca
+ sta ,-s FOR COUNT DOWN
+ ldd ,x get top 2 bytes
+
+_exd1 lsra shift right
+ rorb
+ dec ,s count down
+ bne _exd1
+
+ leas 1,s clean stack
+ tst MBC,x check sign
+ bpl _exd5 exit
+ nega
+ negb
+ sbca #0
+_exd5 andcc #$fe
+ leax WBC,x
+ rts
+
+_exd2 clra
+ clrb
+ leax WBC,x
+ rts
+
+_exd4 comb
+ ldb #42 overflow in conversion
+ leax WBC,x
+ rts
+ pag
+* _denter  enters number y points to
+* where x is
+* x=x-WBC  y=y+WBC
+
+_denter: leax -WBC,x make room
+ ldd ,y++
+ std ,x
+ ldd ,y++
+ std 2,x
+ ldd ,y++
+ std 4,x
+ lda ,y+
+ sta 6,x
+ ldd ,y++
+ std MBC,x
+ rts
+
+
+* _dexit REMOVES NUMBER  at x AND PLACES
+* at y
+* x=x+WBC y saved
+
+_dexit: ldd ,x++
+ std ,y
+ ldd ,x++
+ std 2,y
+ ldd ,x++
+ std 4,y
+ lda ,x+
+ sta 6,y
+ ldd ,x++
+ std MBC,y
+ rts
+
+
+* _dexg EXGCHANGES TWO NUMBER ON STACK
+
+_dexg:
+ pshs y
+ ldd ,x
+ ldy WBC,x
+ std WBC,x
+ sty ,x
+ ldd 2,x
+ ldy WBC+2,x
+ std WBC+2,x
+ sty 2,x
+ ldd 4,x
+ ldy WBC+4,x
+ std WBC+4,x
+ sty 4,x
+ lda 6,x
+ ldb WBC+6,x
+ sta WBC+6,x
+ stb 6,x
+ ldd MBC,x
+ ldy WBC+MBC,x
+ std WBC+MBC,x
+ sty MBC,x
+ puls y,pc
+
+ pag
+* xtofla
+* move double at x to flacc
+
+_xtofla: ldd ,x
+_xtofla1: std _flacc,y
+ ldd 2,x
+ std _flacc+2,y
+ ldd 4,x
+ std _flacc+4,y
+ ldd 6,x
+ leax _flacc,y
+ std 6,x
+ rts
+
+
+* 4 bytes x points is put in stack
+
+_mfstack: leas -8,s
+ ldd 8,s take care of return address
+ std ,s
+ clra
+ clrb
+ std 5,s
+ std 7,s
+ ldd ,x
+ std 2,s
+ ldd 2,x
+ sta 4,s
+ stb 2+7,s
+ rts
+
+* dstack
+* 8 bytes x points to gets put on stack
+
+_mdstack: leas -$08,s
+ ldd 8,s get return address
+ std ,s
+ ldd ,x
+ std 2,s
+ ldd 2,x
+ std 4,s
+ ldd 4,x
+ std 6,s
+ ldd 6,x
+ std 8,s put back return address
+ rts
+
+ pag
+* fmove  2 bytes on stack is 'to' pointer
+* x is 'from' pointer
+* 4 bytes moved
+* x return as 'to' pointer
+
+_mfmove: pshs u
+ ldu 4,s
+ exg x,u
+ ldd ,u
+ std ,x
+ ldd 2,u
+ std $02,x
+ bra _mdmov1
+
+
+* dmove 2 bytes on stack is 'to' pointer
+* x is 'from' pointer
+* 8 bytes moved
+* x returns as 'to' pointer
+
+_mdmove: pshs u
+ ldu 4,s get to pointer
+ exg x,u exchange to and from
+ ldd ,u
+ std ,x
+ ldd 2,u
+ std 2,x
+ ldd 4,u
+ std 4,x
+ ldd 6,u
+ std 6,x
+_mdmov1 puls u get u back
+ puls b,a get return address
+ std ,s wipe out from pointer
+ rts
+ pag
+* takes absolute value
+
+dabs:
+fabs:
+ leax 2,s
+ lda ,x
+ anda #$7f
+ sta ,x
+ lbra _xtofla
+
+dexp:
+ pshs u
+ leau 4,s
+ ldd ,u
+ anda #$7f
+ lsra
+ rorb
+ lsra
+ rorb
+ lsra
+ rorb
+ lsra
+ rorb
+ beq dexp_copy
+ addd 12,s
+ cmpd #1
+ blt dexp_under
+ cmpd #2047
+ bge dexp_over
+ aslb
+ rola
+ aslb
+ rola
+ aslb
+ rola
+ aslb
+ rola
+ pshs d
+ lda ,u
+ anda #$80
+ ora ,s
+ sta ,s
+ ldb 1,u
+ andb #$0f
+ orb 1,s
+ stb 1,s
+ puls d
+ std ,u
+dexp_copy tfr u,x
+ puls u
+ lbra _xtofla
+dexp_under puls u
+ ldd #-1
+ lbra _errz0
+dexp_over puls u
+ ldd #1
+ lbra _errz0
+
+ endsect

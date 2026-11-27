@@ -1,6 +1,49 @@
                     section   rodata    ; begin rodata section
 
 * Initialized Data (class G)
+ IFDEF NITROS9_C3
+atoftbl:
+ fcb $3f,$f0,$00,$00,$00,$00,$00,$00
+ fcb $40,$24,$00,$00,$00,$00,$00,$00
+ fcb $40,$59,$00,$00,$00,$00,$00,$00
+ fcb $40,$8f,$40,$00,$00,$00,$00,$00
+ fcb $40,$c3,$88,$00,$00,$00,$00,$00
+ fcb $40,$f8,$6a,$00,$00,$00,$00,$00
+ fcb $41,$2e,$84,$80,$00,$00,$00,$00
+ fcb $41,$63,$12,$d0,$00,$00,$00,$00
+ fcb $41,$97,$d7,$84,$00,$00,$00,$00
+ fcb $41,$cd,$cd,$65,$00,$00,$00,$00
+ fcb $42,$02,$a0,$5f,$20,$00,$00,$00
+ fcb $44,$15,$af,$1d,$78,$b5,$8c,$40
+ fcb $46,$29,$3e,$59,$39,$a0,$8c,$ea
+ fcb $48,$3d,$63,$29,$f1,$c3,$5c,$a5
+ fcb $4a,$51,$1b,$0e,$c5,$7e,$64,$9a
+ fcb $4c,$63,$e9,$e4,$e4,$c2,$f3,$44
+ fcb $4e,$77,$2e,$ba,$d6,$dd,$c7,$3d
+ fcb $50,$8a,$fc,$ef,$51,$f0,$fb,$5f
+ fcb $52,$9f,$6b,$0f,$09,$29,$59,$c7
+ fcb $54,$b2,$49,$ad,$25,$94,$c3,$7d
+ fcb $56,$c5,$4a,$30,$47,$c6,$94,$fe
+ fcb $58,$d8,$c8,$da,$c6,$a0,$34,$2a
+ fcb $5a,$ec,$da,$62,$05,$5b,$2d,$9e
+ fcb $5d,$00,$cb,$70,$d2,$4b,$73,$79
+ fcb $5f,$13,$8d,$35,$2e,$50,$96,$af
+ fcb $61,$26,$c2,$d4,$25,$6f,$fc,$c3
+ fcb $63,$3a,$7f,$52,$45,$e5,$a2,$cf
+ fcb $65,$4e,$d8,$d3,$4e,$54,$73,$14
+ fcb $67,$61,$f4,$8e,$af,$23,$4a,$d4
+ fcb $69,$74,$e7,$18,$d7,$d7,$62,$5a
+ fcb $6b,$88,$55,$7f,$31,$32,$6b,$bb
+ fcb $6d,$9c,$54,$16,$bb,$92,$e3,$e6
+ fcb $6f,$b0,$7d,$45,$71,$24,$12,$3d
+ fcb $71,$c3,$32,$34,$de,$7a,$d7,$e3
+ fcb $73,$d6,$58,$e3,$ab,$79,$52,$04
+ fcb $75,$ea,$03,$fd,$e2,$14,$ca,$f1
+ fcb $77,$fe,$49,$40,$34,$e7,$9e,$5c
+ fcb $7a,$11,$a0,$fc,$66,$8a,$ac,$70
+ fcb $7c,$24,$85,$ce,$9e,$7a,$06,$5f
+ fcb $7e,$37,$e4,$3c,$88,$00,$75,$9c
+ ELSE
 atoftbl:            fcb       $00       ; define byte data $00
                     fcb       $00       ; define byte data $00
                     fcb       $00       ; define byte data $00
@@ -106,6 +149,7 @@ atoftbl:            fcb       $00       ; define byte data $00
                     fcb       $4f       ; define byte data $4f
                     fcb       $e4       ; define byte data $e4
 
+ ENDC
                     endsect   ;         end current section
 
                     section   code      ; begin code section
@@ -168,6 +212,27 @@ stk_scale_value     equ       2         ; double value to scale
 stk_scale_power     equ       10        ; decimal exponent magnitude
 stk_scale_direction equ       12        ; zero divides, nonzero multiplies
                     pshs      u         ; preserve caller's U register
+ IFDEF NITROS9_C3
+Scale_chunks:
+                    ldd       stk_scale_power+2,s
+                    cmpd      #300
+                    ble       Scale_remainder
+                    subd      #300
+                    std       stk_scale_power+2,s
+                    leax      stk_scale_value+2,s
+                    pshs      x
+                    ldd       stk_scale_direction+4,s
+                    pshs      d
+                    ldd       #300
+                    pshs      d
+                    leax      stk_scale_value+8,s
+                    lbsr      _dstack
+                    lbsr      _scale
+                    leas      12,s
+                    lbsr      _dmove
+                    bra       Scale_chunks
+Scale_remainder:
+ ENDC
                     ldd       stk_scale_power+2,s ; load decimal exponent after saved U
                     cmpd      #9        ; large exponents are handled in chunks of ten
                     ble       BranchTarget_03 ; skip chunk scaling for small exponents

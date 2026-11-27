@@ -414,3 +414,11 @@ Private stdio helpers keep FILE in U for C3. Data-only C units bypass optx to av
 initializing BSS; ctype leaves are optimized separately to avoid merged returns.
 I/O, status, and status-return bodies split into independent archive members;
 existing private calls become normal linker references, without generated code.
+
+The C3 optional archives also select canonical `math/`, `cgfx/`, `asm/`, and
+`termcap/` sources. Preserve their assembly algorithms. `c3/rma_sources.py` selects
+assembler syntax; `c3/optional.py` builds optional profiles. Keep provenance in
+`c3/PORT-PARITY.json`. Run `c3/parity.py` for both optimizer variants; pass the same
+kernel arguments as test.py plus `--fpo9 PATH` for execution. The compact default
+archive and full floating archive must remain separate, so ordinary apps do not
+pull in floating formatting or require FPO9. Shared CMOC builds must still pass.

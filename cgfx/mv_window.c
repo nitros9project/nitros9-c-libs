@@ -1,3 +1,83 @@
+#ifdef NITROS9_C3
+#asm
+* C3_RMA_BEGIN
+***************************************
+* Multi-Vue Windowing Functions       *
+* Copyright (c) 1989 by Mike Sweet    *
+***************************************
+
+ ifp1
+* use /dd/defs/os9defs.a
+ endc
+
+ psect mv_window,0,0,0,0,0
+
+_ss_wset:
+ pshs y,b
+ lbsr _Flush
+ lda ,s
+ ldb #$86
+ ldx 7,s
+ ldy 5,s
+ os9 I$SETSTT
+ leas 1,s
+ puls y
+ bra os9err0
+
+_gs_msel:
+ tfr b,a
+ ldb #$87
+ os9 I$GETSTT
+ bcs os9err0
+ pshs a
+ clra
+ std [3,s]
+ puls b,pc
+
+_ss_umbar:
+_ss_umba:
+ tfr b,a
+ ldb #$95
+ os9 I$SETSTT
+
+os9err0 bcc noerr0
+ clra
+ std errno,y
+ ldd #-1
+ rts
+noerr0 clra
+ clrb
+ rts
+
+_ss_sbar:
+ pshs y
+ tfr b,a
+ ldx 4,s
+ ldy 6,s
+ ldb #$88
+ os9 I$SETSTT
+ puls y
+ bra os9err0
+
+* Native modern interface returns status and writes both result pointers.
+_cgfx_gs_mnsel:
+ tfr b,a
+ ldb #$87
+ os9 I$GETSTT
+ bcs os9err0
+ pshs a
+ clra
+ std [3,s]
+ puls b
+ std [4,s]
+ clrb
+ rts
+
+ endsect
+
+* C3_RMA_END
+#endasm
+#else
 #include <cgfx.h>
 
 asm error_code
@@ -65,3 +145,5 @@ _cgfx_ss_sbar(path_id path, int horbar, int verbar)
 		bra 	os9err0
 	}
 }
+
+#endif
