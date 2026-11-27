@@ -1,12 +1,13 @@
 import sys
 from pathlib import Path
 import unittest
+import tempfile
 from unittest.mock import patch
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from native_asm import lower
 from native_calls import lower as calls
-from native_sources import c_view, names, split_declarations
+from native_sources import c_view, names, split_declarations, write_headers
 from rma_sources import prepare
 from split_code import split
 from build import adapt_data, optimize_rma
@@ -20,6 +21,14 @@ def spec(args='char *p',result='int'):
 
 
 class SourceTests(unittest.TestCase):
+    def test_legacy_assembler_stdio_header_keeps_file_abi(self):
+        with tempfile.TemporaryDirectory() as directory:
+            write_headers(Path(directory))
+            text=(Path(directory)/'stdio.a').read_text()
+        for definition in ('_ptr equ 0','_bufsiz equ 11','_iobsiz equ 13','_NFILE equ 16','BUFSIZ equ 256'):
+            self.assertIn(definition+'\n',text)
+
+
     def test_math_comma_declarations_keep_every_function(self):
         view=c_view('double sin(double),cos(double),atan(double);',header=True)
         self.assertEqual(view,'double sin();\ndouble cos();\ndouble atan();')
