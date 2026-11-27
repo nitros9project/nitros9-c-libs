@@ -7,15 +7,15 @@ mapping. Native symbols are checked separately from compatibility symbols.
 import argparse,json,re,subprocess
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
-def public_api():
+def public_api(header_cc="cc"):
     result={}
     for p in sorted((ROOT/'include').rglob('*.h')):
         if p.name in ('mat.h','local.h','dbg.h'):continue
-        s=re.sub(r'/\*.*?\*/','',p.read_text(),flags=re.S)
+        s=subprocess.check_output([header_cc, '-E', '-P', '-w', '-x', 'c', '-D_CMOC_MC6839_', '-I'+str(ROOT/'include'), str(p)], text=True)
         for ret,name,args in re.findall(r'(?m)^([A-Za-z_][^\n;{}]*?)\b([A-Za-z_]\w*)\s*\(([^;{}]*?)\);',s,re.S):
             if not ret.strip().startswith('typedef'): result[name]=str(p.relative_to(ROOT))
     # math.h has comma-separated declarations on single lines.
-    for name in re.findall(r"\b(\w+)\([^()]*\)",re.sub(r"/\*.*?\*/", "",(ROOT/"include/math.h").read_text(),flags=re.S)):
+    for name in re.findall(r"\b(\w+)\([^()]*\)",subprocess.check_output([header_cc, '-E', '-P', '-w', '-x', 'c', '-D_CMOC_MC6839_', '-I'+str(ROOT/'include'), str(ROOT/'include/math.h')], text=True)):
         if name != "defined": result[name]="include/math.h"
     return result
 
@@ -24,8 +24,8 @@ def symbols(nm,paths):
     return set(re.findall(r'(?m)^\S*\s+[A-Za-z]\s+(\S+)$',out))
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--nm',required=True);p.add_argument('--clang',required=True);p.add_argument('--sysroot',required=True);p.add_argument('--out',required=True);p.add_argument('--runtime',required=True);a=p.parse_args()
-    api=public_api();inventory=json.loads((ROOT/'llvm/api-map.json').read_text());errors=[]
+    p=argparse.ArgumentParser();p.add_argument('--nm',required=True);p.add_argument('--clang',required=True);p.add_argument('--sysroot',required=True);p.add_argument('--out',required=True);p.add_argument('--runtime',required=True);p.add_argument('--header-cc',default='cc');a=p.parse_args()
+    api=public_api(a.header_cc);inventory=json.loads((ROOT/'llvm/api-map.json').read_text());errors=[]
     if set(api)!=set(inventory):
         errors.append('Inventory mismatch: new='+str(sorted(set(api)-set(inventory)))+' removed='+str(sorted(set(inventory)-set(api))))
     compat=symbols(a.nm,[Path(a.out)/'libcmoc_os9_compat.a'])

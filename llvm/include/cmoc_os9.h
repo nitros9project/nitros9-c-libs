@@ -2,6 +2,7 @@
 #define CMOC_OS9_API_H
 #include "cmoc_os9_compat.h"
 #include "os9abi.h"
+#include "os9raw.h"
 #include <signal.h>
 #include <stddef.h>
 #include <stdint.h>

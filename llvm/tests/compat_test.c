@@ -15,7 +15,7 @@ int cmoc_os9_get_user(int *uid)
     *uid = uid_value;
     return error_code;
 }
-int cmoc_os9_set_user(unsigned int uid)
+int cmoc_os9_set_user(int uid)
 {
     requested_uid = uid;
     return error_code;

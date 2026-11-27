@@ -11,7 +11,7 @@ with the per-scenario actual / golden / diff PNGs and MAME log.
 ## Layout cheat-sheet
 
 ```
-lib/                Canonical C library sources (CMOC and native C3)
+lib/                Canonical library sources (CMOC, C3 and LLVM OS calls)
 c3/                 Native C3 build selection, headers, and ABI/kernel tests
 cgfx/               CGFX graphics library (libcgfx.a)
 unittest/           Text-mode unit tests (one .c per test)
@@ -422,3 +422,20 @@ assembler syntax; `c3/optional.py` builds optional profiles. Keep provenance in
 kernel arguments as test.py plus `--fpo9 PATH` for execution. The compact default
 archive and full floating archive must remain separate, so ordinary apps do not
 pull in floating formatting or require FPO9. Shared CMOC builds must still pass.
+
+## Shared native OS calls
+
+`os9/build.py` selects LLVM ABI/syntax directly from `lib/*.as`, using the
+C3 selector infrastructure. No runtime ABI wrappers or duplicated LLVM C
+syscall bodies. `os9/include/os9.h` and `include/os9raw.h` are the canonical
+LLVM runtime API; compiler-rt fetches a pin and installs them. Do not expose
+the CMOC standard headers ahead of picolibc in an LLVM application's path.
+
+`python3 -m unittest discover -s os9/tests -p 'test_*.py'` checks selection;
+`os9/tests/check.py --help` describes the three-compiler kernel probe.
+It is separate from CMOC recipe tests. `os9/tests/compare_sizes.py --help`
+compares prepared bakeoff sources against two compiler/runtime/sysroot pairs.
+Keep `os9/SIZE-COMPARISON.md` current when reporting those module sizes.
+`make -C llvm` now also needs lwasm (`LWASM` override). Its host test target
+uses the selector tests instead of the removed C syscall-marshalling mock.
+Raw create reports E$CEF; overwrite/truncate belongs in Unix creat/create.

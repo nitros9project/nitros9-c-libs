@@ -919,6 +919,101 @@
     "provider": "picolibc",
     "symbol": "mktime"
   },
+  "n9_chgdir": {
+    "header": "include/os9raw.h",
+    "provider": "compat",
+    "symbol": "n9_chgdir"
+  },
+  "n9_create": {
+    "header": "include/os9raw.h",
+    "provider": "compat",
+    "symbol": "n9_create"
+  },
+  "n9_delete": {
+    "header": "include/os9raw.h",
+    "provider": "compat",
+    "symbol": "n9_delete"
+  },
+  "n9_dup": {
+    "header": "include/os9raw.h",
+    "provider": "compat",
+    "symbol": "n9_dup"
+  },
+  "n9_exit": {
+    "header": "include/os9raw.h",
+    "provider": "compat",
+    "symbol": "n9_exit"
+  },
+  "n9_getstt": {
+    "header": "include/os9raw.h",
+    "provider": "compat",
+    "symbol": "n9_getstt"
+  },
+  "n9_getstt_buf": {
+    "header": "include/os9raw.h",
+    "provider": "compat",
+    "symbol": "n9_getstt_buf"
+  },
+  "n9_getstt_xu": {
+    "header": "include/os9raw.h",
+    "provider": "compat",
+    "symbol": "n9_getstt_xu"
+  },
+  "n9_icpt": {
+    "header": "include/os9raw.h",
+    "provider": "compat",
+    "symbol": "n9_icpt"
+  },
+  "n9_id": {
+    "header": "include/os9raw.h",
+    "provider": "compat",
+    "symbol": "n9_id"
+  },
+  "n9_link": {
+    "header": "include/os9raw.h",
+    "provider": "compat",
+    "symbol": "n9_link"
+  },
+  "n9_load": {
+    "header": "include/os9raw.h",
+    "provider": "compat",
+    "symbol": "n9_load"
+  },
+  "n9_mem": {
+    "header": "include/os9raw.h",
+    "provider": "compat",
+    "symbol": "n9_mem"
+  },
+  "n9_prerr": {
+    "header": "include/os9raw.h",
+    "provider": "compat",
+    "symbol": "n9_prerr"
+  },
+  "n9_seek": {
+    "header": "include/os9raw.h",
+    "provider": "compat",
+    "symbol": "n9_seek"
+  },
+  "n9_setstt_buf": {
+    "header": "include/os9raw.h",
+    "provider": "compat",
+    "symbol": "n9_setstt_buf"
+  },
+  "n9_setstt_xu": {
+    "header": "include/os9raw.h",
+    "provider": "compat",
+    "symbol": "n9_setstt_xu"
+  },
+  "n9_sleep": {
+    "header": "include/os9raw.h",
+    "provider": "compat",
+    "symbol": "n9_sleep"
+  },
+  "n9_unlink": {
+    "header": "include/os9raw.h",
+    "provider": "compat",
+    "symbol": "n9_unlink"
+  },
   "o2utime": {
     "header": "include/time.h",
     "provider": "compat",

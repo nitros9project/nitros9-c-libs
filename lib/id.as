@@ -9,7 +9,6 @@ __os_getuid         EXPORT    ;         export this symbol
 __os_asetuid        EXPORT    ;         export this symbol
 __os_setuid         EXPORT    ;         export this symbol
 
-_getpid             EXTERNAL  ;         import external symbol
 _oserr              EXTERNAL  ;         import external symbol
 _osret              EXTERNAL  ;         import external symbol
 
@@ -18,7 +17,9 @@ stk_os_getpid_saved_y equ       0         ; saved CMOC data-area register after 
 stk_os_getpid_ret   equ       2         ; caller return address after pshs y
 stk_os_getpid_result equ       4         ; optional caller pointer for returned process ID
                     pshs      y         ; preserve caller's data-area register
-                    lbsr      _getpid   ; fetch the process ID through the C helper
+                    os9       F_ID      ; obtain process ID directly from the kernel
+                    tfr       a,b       ; normalize process ID as a C int
+                    clra                ; clear its high byte
                     ldx       stk_os_getpid_result,s ; get optional output pointer
                     beq       os_getpid_done ; skip store when caller passed NULL
                     std       ,x        ; store process ID through caller output pointer

@@ -7,6 +7,7 @@ __os_chain          EXPORT    ;         export chain wrapper
 __os_fork           EXPORT    ;         export fork wrapper
 
 _oserr              EXTERNAL  ;         common OS-9 error-return helper
+_os9err             EXTERNAL  ; traditional -1/errno return for wait
 _osret              EXTERNAL  ;         common OS-9 success-return helper
 
                     section   code      ; begin code section
@@ -28,7 +29,7 @@ stk_os_wait_statusp equ       2         ; optional caller status pointer
                     clra                ; clear high byte before wait call
                     clrb                ; clear low byte before wait call
                     os9       F_Wait    ; wait for any child process to terminate
-                    lblo      _oserr    ; return errno-style error when no child or failure
+                    lblo      _os9err   ; return -1/errno when no child or failure
                     ldx       stk_os_wait_statusp,s ; load caller's status pointer
                     beq       wait_return_pid ; skip status writeback when pointer is NULL
                     stb       1,x       ; store child exit status in low byte

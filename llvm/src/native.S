@@ -1,44 +1,6 @@
-/* LLVM pointer arguments and int results use X. Kernel registers are
- * staged through a checked wire block; preserve the process U and DP.
- * OS-9 permits execution of the four-byte stack syscall thunk, matching
- * the historical generic syscall implementation without modifying code. */
+/* Compiler-specific callback and process-data helpers. Kernel calls are
+ * assembled from the canonical library sources by os9/build.py. */
 .text
-.globl __cmoc_syscall
-__cmoc_syscall:
- pshs dp,x,y,u
- lda 1,x
- ldb #0x39
- pshs d
- ldd #0x103f
- pshs d
- ldu 2,x
- ldd 1,u
- ldx 4,u
- ldy 6,u
- ldu 8,u
- jsr ,s
- pshs cc,d,dp,x,y,u
- ldx 15,s
- ldx 2,x
- leay ,s
- ldu #10
-.Lcopy_regs:
- ldb ,y+
- stb ,x+
- leau -1,u
- bne .Lcopy_regs
- clra
- clrb
- lda ,s
- bita #1
- beq .Lsys_success
- ldb 2,s
-.Lsys_success:
- clra
- std 15,s
- leas 14,s
- puls dp,x,y,u
- rts
 .globl getsp
 getsp:
  leax 2,s

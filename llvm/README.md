@@ -1,7 +1,7 @@
 # LLVM OS-9 C library port
 
 The LLVM build covers the complete callable interface of the active CMOC C
-library: 280 original header declarations have explicit provider mappings in
+library: 299 active header declarations have explicit provider mappings in
 `api-map.json`. Standard C uses picolibc and LLVM's OS-9 runtime. Kreider and
 OS-9 extensions have native LLVM implementations; CMOC assembly objects are
 never linked into an LLVM application.
@@ -13,9 +13,13 @@ profiling hooks and the legacy `_chcodes` classification table. Vendored picolib
 double math, numeric conversion and floating output missing from the installed
 OS-9 sysroot. Existing CMOC `lib/` and `cgfx/` builds remain available.
 
+OS-call bodies are selected from the shared assembly in `lib/*.as`; see
+[the native-call build and contracts](../os9/README.md). There is no separate
+LLVM C implementation of these calls.
+
 ## Build and use
 
-The default paths assume `cmoc_os9`, `llvm-mc6809`, and `picolibc` are siblings.
+The default paths assume `nitros9-c-libs`, `llvm-mc6809`, and `picolibc` are siblings.
 The sysroot must be an installed OS-9 picolibc build, not the bare-metal build.
 After building picolibc, run this from its checkout:
 
