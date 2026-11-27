@@ -357,4 +357,11 @@ char *hstrtostr(char *dst, char *src);
  */
 int hputs(const char *str);
 
+#ifdef NITROS9_C3
+char *getsp(void);
+void movemem(void *destination, const void *source, int count);
+char *skipbl(const char *text);
+char *skipwd(const char *text);
+#endif
+
 #endif

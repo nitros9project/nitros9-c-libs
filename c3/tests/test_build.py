@@ -1,12 +1,14 @@
 import sys
 from pathlib import Path
 import unittest
+import tempfile
 from unittest.mock import patch
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from native_asm import lower
 from native_calls import lower as calls
-from native_sources import c_view, names
+from native_sources import c_view, names, split_declarations, write_headers
+from rma_sources import prepare
 from split_code import split
 from build import adapt_data, optimize_rma
 from private_stdio import select as private_stdio
@@ -19,6 +21,31 @@ def spec(args='char *p',result='int'):
 
 
 class SourceTests(unittest.TestCase):
+    def test_legacy_assembler_stdio_header_keeps_file_abi(self):
+        with tempfile.TemporaryDirectory() as directory:
+            write_headers(Path(directory))
+            text=(Path(directory)/'stdio.a').read_text()
+        for definition in ('_ptr equ 0','_bufsiz equ 11','_iobsiz equ 13','_NFILE equ 16','BUFSIZ equ 256'):
+            self.assertIn(definition+'\n',text)
+
+
+    def test_math_comma_declarations_keep_every_function(self):
+        view=c_view('double sin(double),cos(double),atan(double);',header=True)
+        self.assertEqual(view,'double sin();\ndouble cos();\ndouble atan();')
+
+    def test_adjacent_literals_preserve_hex_escape_boundaries(self):
+        self.assertEqual(c_view(r'char *p="\x1b" "5";'),r'char *p="\0335";')
+
+    def test_rma_pc_address_and_register_masks_are_distinct(self):
+        c3=Path('/compiler')
+        with patch('rma_sources.subprocess.run') as process:
+            process.return_value.stdout=b''
+            prepare(' psect probe,0,0,0,0,0\nentry:\n leax table,pc\n puls y,pc\n endsect\n',c3)
+            text=process.call_args_list[0].kwargs['input'].decode()
+        self.assertIn('leax table,pcr',text)
+        self.assertIn('puls y,pc',text)
+
+
     def test_dollar_alias_cannot_redefine_the_canonical_error_value(self):
         result=c_view('#define E_BMID 247\n#define E$BMID E_BMID\n',header=True)
         self.assertEqual(result.count('#define E_BMID'),1)

@@ -18,9 +18,11 @@ static struct {
 static int run_item(const char *name, int *status)
 {
     int pid;
-    char params[] = "\n";
+    char params[2];
     error_code err;
 
+    params[0] = '\n';
+    params[1] = 0;
     err = _os_fork(name, 1, params, Objct, Prgrm, 0, &pid);
     if (err != 0)
     {

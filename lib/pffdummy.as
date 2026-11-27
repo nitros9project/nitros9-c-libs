@@ -5,7 +5,11 @@ _pffloat:
 stk_pffloat_ret     equ       0         ; caller return address
 stk_pffloat_spec    equ       2         ; unused format specifier argument
 stk_pffloat_args    equ       6         ; pointer to the vararg cursor
-                    ldx       stk_pffloat_args,s
+                    IFDEF NITROS9_C3
+                    ldx stk_pffloat_args-2,s
+                    ELSE
+                    ldx stk_pffloat_args,s
+                    ENDC
                     ldd       ,x
                     IFDEF     NITROS9_C3
                     addd      #8        ; C3 promotes variadic floats to 8-byte double

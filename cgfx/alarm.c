@@ -1,3 +1,57 @@
+#ifdef NITROS9_C3
+#asm
+* C3_RMA_BEGIN
+************************************
+* Alarm Functions                  *
+* Copyright (c) 1989 by Mike Sweet *
+************************************
+* Updated for the new C ABI on     *
+* 12/25/2005 by tim lindner        *
+************************************
+
+ ifp1
+* use /dd/defs/os9defs.a
+ endc
+
+ psect alarm,0,0,0,0,0
+
+SetAlarm:
+ tfr d,x ldx 2,s
+ ldd #1
+ bra return
+
+GetAlarm:
+ tfr d,x ldx 2,s
+ ldd #2
+ bra return
+
+ClrAlarm:
+ clra
+ clrb
+
+return os9 F$ALARM
+ bcs error
+ clra
+ clrb
+ rts
+
+error clra
+ std errno,y
+ ldd #-1
+ rts
+
+SigAlarm:
+ pshs y,d
+ os9 F$ID
+ puls x,y
+ ldb 3,s
+ bra return
+
+ endsect
+
+* C3_RMA_END
+#endasm
+#else
 #include <cgfx.h>
 #include <os.h>
 
@@ -69,3 +123,5 @@ _os9err EXTERNAL
         lbra _sysret
     }
 }
+
+#endif

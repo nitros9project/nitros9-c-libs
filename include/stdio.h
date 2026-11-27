@@ -119,6 +119,15 @@ int puts(const char *s);
  */
 int fputs(const char *s, FILE *stream);
 
+/* Formatted input uses the native C3 variadic calling convention. */
+#ifdef NITROS9_C3
+int pflinit(void);
+int pffinit(void);
+int scanf(const char *format, ...);
+int fscanf(FILE *stream, const char *format, ...);
+int sscanf(const char *input, const char *format, ...);
+#endif
+
 /* Declare addressable functions before defining their inline forms. */
 int putchar(int c);
 int feof(FILE *p);

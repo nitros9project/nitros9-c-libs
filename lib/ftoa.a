@@ -1,0 +1,104 @@
+* IEEE entry selection for the original C3 assembly digit-extraction body.
+* Original pffinit.c: 20-May-83 rounding fix; C3 port 2026-11-26.
+ psect ftoa_a,0,0,0,0,0
+ vsect dp
+bytcnt rmb 1
+ endsect
+
+_abnorm: pshs u
+ tfr d,x
+ ldd ,x
+ anda #$7f
+ lsra
+ rorb
+ lsra
+ rorb
+ lsra
+ rorb
+ lsra
+ rorb
+ subd #1023
+ pshs b
+ ldd 1,x
+ std ,x
+ ldd 3,x
+ std 2,x
+ ldd 5,x
+ std 4,x
+ lda 7,x
+ sta 6,x
+ clr 7,x
+ lda ,x
+ anda #$0f
+ ora #$10
+ sta ,x
+ ldb ,s+
+ beq abnb
+abna lsl 7,x
+ rol 6,x
+ rol 5,x
+ rol 4,x
+ rol 3,x
+ rol 2,x
+ rol 1,x
+ rol ,x
+ decb
+ bne abna
+abnb lda #8
+abnc deca
+ bmi abnd
+ ldb a,x
+ beq abnc
+abnd sta <bytcnt
+ clra
+ clrb
+ puls u,pc
+
+_outdig: tfr d,x get float ptr
+ clra
+ ldb 0,x get next digit
+ lsrb
+ lsrb
+ lsrb
+ lsrb
+ addb #'0
+ pshs d,u save registers
+ ldb 0,x clear new digit
+ andb #$0F
+ stb 0,x
+ bsr shift get float * 2
+ lda <bytcnt get byte count
+ bmi outde branch if none
+outda ldb a,x get next byte
+ bne outdb branch if significant
+ deca count byte
+ bpl outda branch if more
+outdb sta <bytcnt update byte count
+ bmi outde
+ leas -8,s get scratch
+outdc ldb a,x copy float * 2
+ stb a,s
+ deca count byte
+ bpl outdc branch if more
+ bsr shift get float * 4
+ bsr shift get float * 8
+ lda <bytcnt get byte count
+ clrb clear carry
+outdd ldb a,x
+ adcb a,s
+ stb a,x
+ deca count byte
+ bpl outdd branch if more
+ leas 8,s return scratch
+outde puls d,u,pc
+
+shift lda <bytcnt
+ bmi shiftc
+ asl a,x
+ bra shiftb
+shifta rol a,x
+shiftb deca count byte
+ bpl shifta
+shiftc rts
+
+ endsect

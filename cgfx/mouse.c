@@ -1,3 +1,60 @@
+#ifdef NITROS9_C3
+#asm
+* C3_RMA_BEGIN
+***************************************
+* Mouse Handling Functions            *
+* Copyright (c) 1989 by Mike Sweet    *
+***************************************
+
+ ifp1
+* use /dd/defs/os9defs.a
+ endc
+
+ psect mouse,0,0,0,0,0
+
+_ss_mous:
+ pshs y,b
+ lda 6,s
+ ldb 8,s
+ tfr d,x
+ ldy 9,s
+ lda ,s
+ ldb #$89
+ os9 I$SETSTT
+ leas 1,s
+ puls y
+
+os9err0 bcc noerr0
+ clra
+ std errno,y
+ ldd #-1
+ rts
+noerr0 clra
+ clrb
+ rts
+
+_ss_msig:
+ ldx 2,s
+ tfr b,a
+ ldb #$8a
+ os9 I$SETSTT
+ bra os9err0
+
+_gs_mous:
+ pshs y
+ ldx 4,s
+ tfr b,a
+ ldy #0
+ ldb #$89
+ os9 I$GETSTT
+ puls y
+ bra os9err0
+
+ endsect
+
+* C3_RMA_END
+#endasm
+#else
 #include <cgfx.h>
 
 asm error_code
@@ -49,3 +106,4 @@ _cgfx_gs_mouse(path_id path, MSRET *mpkt)
 		bra 	os9err0
 	}
 }
+#endif

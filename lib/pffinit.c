@@ -1,10 +1,31 @@
+#ifdef NITROS9_C3
+/* Historical link anchor: the assembly entry selects this formatter object. */
+__norts__ asm void pffinit(void)
+{
+    asm
+    {
+        rts
+    }
+}
+#endif
+
 #include <ctype.h>
 #include <string.h>
 
-extern char *ftoa(char out[38], float f);
+#ifdef NITROS9_C3
+typedef double printf_float;
+#else
+typedef float printf_float;
+#endif
+extern char *ftoa(char out[38], printf_float f);
 
+#ifdef NITROS9_C3
+static char buf[384];
+static char tmp[384];
+#else
 static char buf[48];
 static char tmp[48];
+#endif
 
 static int
 parse_exp(const char *s)
@@ -276,29 +297,70 @@ format_general(const char *digits, int len, int point, int negative, int prec, i
     }
 }
 
+#ifdef NITROS9_C3
+static void round_digits(char *digits, int *len, int *point, int cut)
+{
+    int i, carry;
+    if (cut>=*len) return;
+    if (cut<0 || (cut==0 && digits[0]<'5')) {
+        digits[0]='0'; digits[1]=0; *len=1; *point=1; return;
+    }
+    if (cut==0) {
+        digits[0]='1'; digits[1]=0; *len=1; ++*point; return;
+    }
+    carry=digits[cut]>='5';
+    *len=cut;
+    digits[cut]=0;
+    for (i=cut-1;i>=0 && carry;--i) {
+        if (++digits[i]>'9') digits[i]='0';
+        else carry=0;
+    }
+    if (carry) {
+        for (i=cut;i>0;--i) digits[i]=digits[i-1];
+        digits[0]='1'; digits[cut+1]=0; ++*len; ++*point;
+    }
+}
+#endif
+
+#ifndef NITROS9_C3
 int
 pffinit(void)
 {
     return 0;
 }
+#endif
 
 char *
-pffloat(int c, int prec, float **args)
+pffloat(int c, int prec, printf_float **args)
 {
-    float *value_ptr;
+    printf_float *value_ptr;
     int point;
     int negative;
     int len;
 
     value_ptr = *args;
-    *args = (float *) ((char *) value_ptr + sizeof(float));
+    *args = (printf_float *) ((char *) value_ptr + sizeof(printf_float));
 
     if (ftoa(tmp, *value_ptr) == 0)
         return 0;
 
+    if (strcmp(tmp,"nan")==0 || strcmp(tmp,"inf")==0 || strcmp(tmp,"-inf")==0)
+        return tmp;
     len = parse_number(tmp, buf, &point, &negative);
     ensure_zero_string(buf, &len, &point);
 
+#ifdef NITROS9_C3
+    if (prec<0) prec=0;
+    if (prec>16) prec=16;
+    {
+        int first=0, cut;
+        while (first<len && buf[first]=='0') ++first;
+        if (c=='e' || c=='E') cut=first+prec+1;
+        else if (c=='g' || c=='G') cut=first+(prec ? prec : 1);
+        else cut=point+prec;
+        round_digits(buf,&len,&point,cut);
+    }
+#endif
     switch (c)
     {
         case 'e':

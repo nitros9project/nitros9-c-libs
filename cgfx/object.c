@@ -5,7 +5,9 @@ OBJECT *Objects = 0;
 
 error_code Flush(void);
 
-OBJECT *AddObj(int path, int group, int buffer, int xcor, int ycor, int (*border)())
+OBJECT *AddObj(path, group, buffer, xcor, ycor, border)
+int path, group, buffer, xcor, ycor;
+int (*border)();
 {
     OBJECT *temp;
 

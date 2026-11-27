@@ -46,6 +46,9 @@
  *
  * This is the byte layout returned by `SS_Opt` for character devices.
  */
+#ifdef NITROS9_C3
+#include <sgstat.h>
+#else
 struct sgbuf {
 	unsigned char sg_class;
 	unsigned char sg_case;
@@ -80,6 +83,7 @@ struct sgbuf {
 	unsigned char sg_err;
 	unsigned char sg_unused;
 };
+#endif
 
 /**
  * @brief OS-9 RBF file descriptor sector layout.

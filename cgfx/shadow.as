@@ -1,3 +1,69 @@
+ IFDEF NITROS9_C3
+* C3_RMA_BEGIN
+ psect mouse,0,0,0,0,0
+
+
+ ifp1
+* use /dd/defs/os9defs.a
+ endc
+
+*************************************************
+* Shadow(path,width,length,fg,bg)
+* int path,width,length,fg,bg;
+*
+* Creates an overlay in the center of the current
+* window 'width' by 'length'.
+*
+*
+*
+
+Shadow:
+ pshs y,b
+ lbsr _Flush
+ leas -9,s
+ lda 9,s
+ ldb #SS.SCSIZ
+ os9 I$GETSTT
+ tfr x,d
+ subd 14,s
+ lsrb
+ stb 3,s
+ tfr y,d
+ subd 16,s
+ lsrb
+ stb 4,s
+ lda 15,s
+ ldb 17,s
+ std 5,s
+ lda 19,s
+ ldb 21,s
+ std 7,s
+ ldd #$1b22
+ std ,s
+ lda #1
+ sta 2,s
+ leax ,s
+ ldy 10,s
+ stu 10,s
+ ldu #9
+ lda 9,s
+ lbsr _cgfx_write
+ bcc noerror
+ clra
+ std errno,y
+ ldd #-1
+ bra srts
+noerror clra
+ clrb
+srts leas 10,s
+ puls u,pc
+
+
+ endsect
+
+
+* C3_RMA_END
+ ELSE
         section code
 
 __cgfx_shadow           EXPORT * export this symbol (cmoc mangles C `_cgfx_shadow` to asm `__cgfx_shadow`)
@@ -47,3 +113,5 @@ srts    leas    9,s * adjust S using 9,s
         puls    u,pc
 
         endsect * end current section
+
+ ENDC

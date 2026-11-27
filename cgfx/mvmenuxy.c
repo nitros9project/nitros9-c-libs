@@ -3,7 +3,9 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifndef WT_SBOX
 #define WT_SBOX 3
+#endif
 
 static int levels = 0;
 static MSRET mp;

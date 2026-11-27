@@ -1,0 +1,11 @@
+* Memory sizing helpers from the C3 startup, kept with the shared library.
+ psect meminfo,0,0,0,0,0
+stacksiz:
+ ldd _sttop,y
+ subd _stbot,y
+ rts
+freemem:
+ ldd _stbot,y
+ subd _mtop,y
+ rts
+ endsect

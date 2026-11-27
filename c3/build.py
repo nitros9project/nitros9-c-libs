@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Compile the canonical library sources with C3 and assemble its native ABI."""
 import argparse
+import os
 import json
 import hashlib
 from pathlib import Path
@@ -14,11 +15,14 @@ from split_code import split as split_code
 from profiles import select as select_profile
 from native_calls import lower as lower_calls
 from long_returns import select as select_long_returns
+from rma_sources import assembly as rma_assembly, prepare as rma_prepare
+from optional import build as build_optional
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def run(command, **kwargs):
+    kwargs['env']={**os.environ, **kwargs.get('env',{}), 'LC_ALL':'C'}
     result = subprocess.run([str(x) for x in command], capture_output=True, timeout=30, **kwargs)
     if result.returncode:
         raise RuntimeError(' '.join(map(str, command))+'\n'+result.stderr.decode(errors='replace')+result.stdout.decode(errors='replace')[-1500:])
@@ -89,7 +93,8 @@ def main():
     specs={'_'+name:spec for name,spec in interfaces().items()}
     makefile=out/'list.mk';makefile.write_text('listmods:\n\t@echo $(BASE_MODS)\n')
     modules=run(['make','-s','-C',ROOT/'lib','-f','Makefile','-f',makefile,'listmods']).decode().split()
-    objects=[];reports={};assembly={};globals=set()
+    modules += ['getenv.o','ftoa.o','pffinit.o']
+    objects=[];floating_objects=[];reports={};assembly={};globals=set()
     for entry in modules:
         name=Path(entry).stem
         if name in ('case','fcommon','rpterr'):continue
@@ -123,6 +128,16 @@ def main():
     symbols={'_'+name:aliases.get(name,name[:8]) for name in interfaces()}
     symbols.update({'_'+name:name for name in globals})
     symbols.update({'__memend':'memend','__mtop':'_mtop','__stbot':'_stbot','_errno':'errno'})
+    for source in [*(ROOT/'lib').glob('*_legacy.a'),ROOT/'lib/memory_info.a']:
+        assembly[source.stem]=(rma_assembly(source,c3),'')
+    assembly['movemem']=(rma_prepare(re.search(r'\* C3_RMA_BEGIN\n(.*?)\* C3_RMA_END',(ROOT/'cgfx/movemem.as').read_text(),re.S)[1],c3),'')
+    assembly['scanf']=(rma_assembly(ROOT/'lib/scanf.a',c3), '')
+    assembly['atof']=(rma_assembly(ROOT/'lib/atof.a',c3), '')
+    assembly['ftoa_support']=(rma_assembly(ROOT/'lib/ftoa.a',c3), '')
+    assembly['scale']=('',run(['lwasm','-DNITROS9_C3=1','-P',ROOT/'lib/scale.as']).decode())
+    for source in sorted((ROOT/'math').glob('*.a')):
+        if source.stem == 'mdefs':continue
+        assembly['math_'+source.stem]=(rma_assembly(source,c3), '')
     for name,(native,asm) in assembly.items():
         if asm:
             for label in readonly_labels:
@@ -155,10 +170,16 @@ def main():
             target=out/(stem+'.s');target.write_text(piece)
             obj=out/(stem+'.o')
             run(['lwasm','--format=obj','-o',obj,target],cwd=out)
-            objects.append(obj)
+            (floating_objects if name in ('ftoa','pffinit') else objects).append(obj)
     archive=out/'libc3.a';archive.unlink(missing_ok=True)
     run(['lwar','-c',archive,*objects])
-    metadata={'compiler_stages':{name:hashlib.sha256((c3/'build/unix'/folder/name).read_bytes()).hexdigest() for folder,name in [('prep','c3prep'),('comp','c3comp'),('optx','c3optx')]},'sources':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted((ROOT/'lib').iterdir()) if p.suffix in ('.c','.as','.asm')},'library_sha256':hashlib.sha256(archive.read_bytes()).hexdigest(),'source_units':len(assembly),'archive_members':len(objects)}
+    float_archive=out/'libc3f.a';float_archive.unlink(missing_ok=True)
+    float_members=[obj for obj in objects if obj.stem!='pffdummy']+floating_objects
+    run(['lwar','-c',float_archive,*float_members])
+    optional=build_optional(ROOT,c3,out,aliases,run,optimize_rma,adapt_data)
+    metadata={'compiler_stages':{name:hashlib.sha256((c3/'build/unix'/folder/name).read_bytes()).hexdigest() for folder,name in [('prep','c3prep'),('comp','c3comp'),('optx','c3optx')]},'sources':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for folder in ('lib','math','cgfx','asm','termcap','include','c3') for p in sorted((ROOT/folder).rglob('*')) if p.is_file() and p.suffix in ('.c','.as','.asm','.a','.d','.h','.py','.json') and not (p.suffix=='.a' and p.read_bytes().startswith((b'LWAR1',b'!<arch>'))) and not any(part in ('out','__pycache__') for part in p.relative_to(ROOT).parts)},'library_sha256':hashlib.sha256(archive.read_bytes()).hexdigest(),'source_units':len(assembly),'archive_members':len(objects),'variants':{'libc3f.a':{'library_sha256':hashlib.sha256(float_archive.read_bytes()).hexdigest(),'archive_members':len(float_members)}}}
+    for name,members in optional.items():
+        metadata['variants'][name]={'library_sha256':hashlib.sha256((out/name).read_bytes()).hexdigest(),'archive_members':len(members)}
     (out/'BUILD.json').write_text(json.dumps(metadata,indent=2)+'\n')
     (out/'abi-report.json').write_text(json.dumps(reports,indent=2)+'\n')
     print('Built',archive,'with',len(objects),'archive members from',len(assembly),'canonical source units using native C3')

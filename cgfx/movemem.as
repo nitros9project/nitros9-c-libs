@@ -1,3 +1,64 @@
+ IFDEF NITROS9_C3
+* C3_RMA_BEGIN
+***************************************************************
+* 'movemem.a' - memory moving functions for OS-9/6809.
+* by Mike Sweet 3/21/90
+*
+************************************
+* Updated for the new C ABI on     *
+* 12/27/2005 by tim lindner        *
+************************************
+*
+* movemem(d,s,bytes)
+* char *d,*s;
+* int bytes;
+*
+* 'movemem()' wil copy the data at 's' to 'd', taking
+* into account any overlap that might exist.
+*
+
+ psect movemem,0,0,0,6,0
+
+movemem: pshs y,u
+ tfr d,x
+ ldy 6,s
+ ldu 8,s
+ cmpx 6,s is the destination > source?
+ bhi movehigh
+
+movelow cmpu #2
+ blo movelst1
+ ldd ,y++
+ std ,x++
+ leau -2,u
+ bra movelow
+movelst1 cmpu #1
+ bne moverts
+ lda ,y
+ sta ,x
+moverts puls y,u,pc
+
+movehigh tfr u,d
+ leay d,y
+ leax d,x
+
+mloop1 cmpu #2
+ blo movelst2
+ ldd ,--y
+ std ,--x
+ leau -2,u
+ bra mloop1
+movelst2 cmpu #1
+ bne moverts
+ lda ,-y
+ sta ,-x
+ puls y,u,pc
+
+ endsect
+
+
+* C3_RMA_END
+ ELSE
 * Adapted from cmoc_os9/cgfx/todo/movemem.a for the live cmoc_os9 ABI.
 
         section code
@@ -45,3 +106,5 @@ movelst2
         puls    y,u,pc * restore preserved registers and return
 
         endsect * end current section
+
+ ENDC
