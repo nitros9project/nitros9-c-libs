@@ -120,7 +120,8 @@ Graphics C and assembly bodies share canonical files with CMOC. Native branches
 adjust arguments in the existing routines, without ABI wrappers. Long modern API
 names map to historical C3 entry names where their signatures agree; differing
 GetStat/mapping contracts retain direct native assembly entries. Compatibility
-headers share canonical declarations. C3 still has its existing global structure
+headers share canonical declarations. The historical `stdio.a` assembler header
+is generated from canonical FILE offsets and flags. C3 still has its existing global structure
 member-name restriction: the historical WINDOW header and OBJECT declaration use
 incompatible `border` members, so compile those interfaces in separate units.
 

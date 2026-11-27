@@ -101,5 +101,20 @@ def write_headers(destination):
         target = destination / path.relative_to(folder)
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text('#include <c3names.h>\n'+c_view(path.read_text(), header=True, aliases=aliases))
+    # Historical assembler clients include stdio.a. Derive its offsets and
+    # byte flags from the canonical assembler layout, rather than retaining
+    # another FILE definition in the compiler repository.
+    layout=(ROOT/'include/stdio.d').read_text()
+    values={name:int(value.replace('$','0x'),0) for name,value in re.findall(r'(?m)^(\w+)[ \t]+equ[ \t]+(\$[0-9a-fA-F]+|[0-9]+)\b',layout)}
+    fields={'_ptr':'FILE_PTR','_base':'FILE_BASE','_end':'FILE_END',
+            '_flag':'FILE_FLAG','_fd':'FILE_FD','_save':'FILE_SAVE',
+            '_bufsiz':'FILE_BUFSIZ','_iobsiz':'FILE_SIZE',
+            '_WRITTEN':'_WRITTEN_HIGH','_INIT':'_INIT_HIGH'}
+    fields.update({name:name for name in ('_READ','_WRITE','_UNBUF','_BIGBUF','_EOF','_ERR','_SCF','_RBF')})
+    legacy={name:values[canonical] for name,canonical in fields.items()}
+    legacy['_DEVMASK']=values['_SCF']|values['_RBF']
+    legacy['_NFILE']=values['FILE_STDIO_COUNT']+values['FILE_USER_COUNT']
+    legacy['BUFSIZ']=int(re.search(r'^#define[ \t]+BUFSIZ[ \t]+([0-9]+)',(ROOT/'include/stdio.h').read_text(),re.M)[1])
+    (destination/'stdio.a').write_text('* Generated from canonical stdio.d and stdio.h\n'+'\n'.join(name+' equ '+str(value) for name,value in legacy.items())+'\n')
     (destination / 'c3names.h').write_text('#ifndef NITROS9_C3_NAMES_H\n#define NITROS9_C3_NAMES_H\n#ifndef NITROS9_C3\n#define NITROS9_C3 1\n#endif\n'+'\n'.join('#define ' + k + ' ' + v for k, v in aliases.items() if k != v) + '\n#endif\n')
     return aliases
