@@ -195,13 +195,22 @@ readln:
 *
 
 write:
- pshs u
+* Flush graphics before an ordinary C write. Return its byte count and do
+* not leave stdio output stranded in the graphics buffer at process exit.
+ pshs b,y
+ lbsr _Flush
+ cmpd #-1
+ beq write_flush_error
+ puls a path
  ldx 4,s *s
- ldu 6,s n
- tfr b,a path
- lbsr _cgfx_write
- lbcs os9err2
- puls u,pc
+ ldy 6,s n
+ os9 I$Write
+ lbcs os9err
+ tfr y,d
+ puls y,pc
+write_flush_error
+ leas 1,s
+ puls y,pc
 
 
 ************************************************

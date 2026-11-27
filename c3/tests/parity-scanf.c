@@ -28,6 +28,11 @@ int main(void)
     file=fopen("scan.tmp","r"); CHECK(file!=NULL);
     CHECK(fscanf(file,"%d %s",&a,text)==2 && a==31 && strcmp(text,"file")==0);
     CHECK(fclose(file)==0);
+    CHECK(sscanf("0","%ld",&value)==1 && value==0L);
+    CHECK(sscanf("","%ld",&value)==EOF);
+    a=123;
+    CHECK(sscanf("  ","%d",&a)<=0 && a==123);
+    CHECK(sscanf("","%s",text)==EOF);
     fputs("SCAN PASS\r",stdout);
     return 0;
 }

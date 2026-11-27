@@ -259,6 +259,8 @@ _0248  ldd   2,s
 _0252  lbra  _0085
 _0255  jsr   [18,s]
  std   6,s
+ cmpd #$FFFF
+ beq _0278
  leax  _chcodes,y
  leax  d,x
  ldb   ,x
@@ -345,6 +347,11 @@ _030a  cmpx  #$006F
  bra   _0303
 _0322  jsr   [84,s]
  std   14,s
+ cmpd #$FFFF
+ bne scan_number_char
+ leau 16,s
+ lbra _0540
+scan_number_char
  leax  _chcodes,y
  leax  d,x
  ldb   ,x
@@ -376,6 +383,8 @@ _0368  ldd   92,s
  std   92,s
  lbra  _03f0
 _0374  ldd   14,s
+ cmpd #$FFFF
+ lbeq _0540
  leax  _chcodes,y
  leax  d,x
  ldb   ,x
@@ -546,7 +555,10 @@ _0507  cmpx  #$0008
  bra   _0530
 _051e  jsr   [84,s]
  std   14,s
-_0523  ldd   92,s
+_0523  ldd 14,s
+ cmpd #$FFFF
+ lbeq _0530
+ ldd   92,s
  addd  #$FFFF
  std   92,s
  lbge  _0427
@@ -665,6 +677,8 @@ _0635  ldd   4,s
  beq   _0653
 _063d  jsr   [10,s]
  std   4,s
+ cmpd #$FFFF
+ beq _0653
  leax  u0000,y
  leax  d,x
  ldb   ,x
