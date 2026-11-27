@@ -71,7 +71,8 @@ typedef struct _registers_6809 {
 error_code _os_syscall(int callcode, registers_6809 *registers);
 
 /**
- * @brief Create a file and return its path descriptor.
+ * @brief Create a new file and return its path descriptor.
+ * Existing files report E$CEF; replacement/truncation belongs to creat/create.
  *
  * @param pathname Path to create.
  * @param mode Access mode bits.

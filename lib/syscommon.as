@@ -12,6 +12,8 @@ _errno              EXTERNAL  ;         import C errno storage
 _osret              EXPORT    ;         export modern _os_* success/error return helper
 _osret:
                     bcs       _oserr    ; convert carry-set OS-9 errors into errno
+_osok               EXPORT    ; unconditional success, including zero-length I/O
+_osok:
                     clra                ; return zero on success
                     clrb                ; return zero on success
                     rts                 ; return to caller

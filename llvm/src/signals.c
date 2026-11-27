@@ -1,4 +1,5 @@
 #include "cmoc_os9.h"
+#include <os9raw.h>
 #include <errno.h>
 #include <stdint.h>
 void __cmoc_signal_receiver(void);
@@ -10,13 +11,10 @@ static struct {
 } traps[20];
 static int installed;
 static int install(void) {
-  registers_6809 r = {0};
   int e;
   if (installed)
     return 0;
-  r.x = (uint16_t)(uintptr_t)__cmoc_signal_receiver;
-  r.u = (uint16_t)(uintptr_t)__cmoc_data_base();
-  e = cmoc_os_syscall(F$Icpt, &r);
+  e = n9_icpt((void *)__cmoc_signal_receiver, __cmoc_data_base());
   if (!e)
     installed = 1;
   return e;

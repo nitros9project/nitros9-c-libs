@@ -10,8 +10,8 @@ void *__cmoc_data_base(void) {
   static char data;
   return &data;
 }
-int cmoc_os_syscall(int code, registers_6809 *r) {
-  assert(code == F$Icpt && r);
+int n9_icpt(void *entry, void *data) {
+  assert(entry == (void *)__cmoc_signal_receiver && data == __cmoc_data_base());
   installs++;
   if (fail) {
     errno = E$BPAddr;

@@ -27,9 +27,16 @@ $(OUT)/stdio/%.o: stdio/%.c $(wildcard stdio/*.h) $(wildcard stdio/*.c) FORCE | 
 	$(CLANG) $(CFLAGS) -Wno-attribute-alias -c $< -o $@
 $(OUT)/native.o: src/native.S FORCE | $(OUT)
 	$(CLANG) --target=mc6809-unknown-os9 -c $< -o $@
-$(LIBRARY): $(OBJECTS)
+$(OUT)/os9/libnitros9_os.a: FORCE | $(OUT)
+	$(PYTHON) ../os9/build.py --clang $(CLANG) --ar $(AR) --lwasm $(LWASM) --out $(OUT)/os9
+
+LWASM ?= lwasm
+
+$(LIBRARY): $(OBJECTS) $(OUT)/os9/libnitros9_os.a
 	$(RM) $@
 	$(AR) rcs $@ $(OBJECTS)
+	$(AR) qL $@ $(OUT)/os9/libnitros9_os.a
+	$(AR) s $@
 $(OUT)/libcmoc_os9_float.a: $(OUT)/float_stdio.o
 	$(RM) $@
 	$(AR) rcs $@ $<
@@ -37,8 +44,7 @@ FORCE:
 test: | $(OUT)
 	$(HOST_CC) -std=c99 -Wall -Wextra -Werror -ffunction-sections -fdata-sections -Iinclude -Isrc src/compat.c tests/compat_test.c -o $(OUT)/compat-test
 	$(OUT)/compat-test
-	$(HOST_CC) -std=c11 -Wall -Wextra -Werror -DCMOC_HOST_TEST -Iinclude src/kernel.c tests/kernel_test.c -o $(OUT)/kernel-test
-	$(OUT)/kernel-test
+	$(PYTHON) -m unittest discover -s ../os9/tests -p 'test_*.py'
 	$(HOST_CC) -std=c11 -Wall -Wextra -Werror -fno-builtin -Iinclude src/extensions.c src/calendar.c src/float.c tests/extension_test.c -o $(OUT)/extension-test
 	$(OUT)/extension-test
 	$(HOST_CC) -std=c11 -Wall -Wextra -Werror -fno-builtin -include tests/host-math/config.h -Itests/host-math -Iinclude -Imath math/*.c src/math_legacy.c tests/math_test.c -o $(OUT)/math-test

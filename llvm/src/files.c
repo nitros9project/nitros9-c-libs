@@ -1,4 +1,5 @@
 #include "cmoc_os9.h"
+#include <os9raw.h>
 #include <errno.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -22,10 +23,7 @@ int cmoc_access(const char *n, int m) {
 int cmoc_mknod(const char *n, int m) { return legacy(cmoc_os_makdir(n, m)); }
 int cmoc_unlinkx(const char *n, int m) { return legacy(cmoc_os_delete(n, m)); }
 int chxdir(const char *n) {
-  registers_6809 r = {0};
-  r.a = 4;
-  r.x = (uint16_t)(uintptr_t)n;
-  return legacy(cmoc_os_syscall(I$ChgDir, &r));
+  return legacy(n9_chgdir(n, 4));
 }
 int create(const char *n, int m, int a) {
   int p, e = cmoc_os_create(n, m, &p, a);
@@ -167,9 +165,8 @@ int _errmsg(int status, const char *fmt, ...) {
   return status;
 }
 int dup(int p) {
-  registers_6809 r = {0};
-  r.a = p;
-  return cmoc_os_syscall(I$Dup, &r) ? -1 : r.a;
+  int copy;
+  return n9_dup(p, &copy) ? -1 : copy;
 }
 int getw(FILE *f) {
   int hi = getc(f), lo;
