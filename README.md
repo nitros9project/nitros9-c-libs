@@ -21,6 +21,19 @@ applications for ordinary calls. Use `#undef` for the corresponding macro before
 taking a function address with C3, whose preprocessor requires macro arguments.
 `toupper` and `tolower` remain functions to preserve non-letter input.
 
+## Shared OS-9 calls
+
+CMOC, C3 and LLVM use the same assembly bodies in `lib/*.as`. Calling
+conventions are selected at build time without runtime ABI wrappers. LLVM's
+compiler-rt fetches a pinned revision and installs this library's OS-call
+headers; picolibc supplies Unix behavior above the native calls. Raw
+`_os_create`/`n9_create` report an existing file; `creat`/`create` retain their
+Unix overwrite policy.
+
+See [build and kernel-test instructions](os9/README.md) and the controlled
+[LLVM application size comparison](os9/SIZE-COMPARISON.md). Building the LLVM
+native calls requires Python 3 and lwasm in addition to LLVM's tools.
+
 ## Building with C3
 
 C3 compiles the canonical `lib/` sources with its native calling convention;
