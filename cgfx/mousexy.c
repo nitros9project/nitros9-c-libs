@@ -140,4 +140,5 @@ nogoodneg
 nogood	clra		clear high byte in D
 		bra return
  	}
-}#endif
+}
+#endif

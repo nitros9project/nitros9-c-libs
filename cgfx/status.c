@@ -345,4 +345,5 @@ _cgfx_ss_mtyp(path_id path, int montype)
 		os9 	I$SetStt
 		bra 	os9err1
 	}
-}#endif
+}
+#endif

@@ -252,4 +252,5 @@ _cgfx_putblk(path_id path, int grp, int buf, int bx, int by)
 		leas 8,s
 		bra os9err0
 	}
-}#endif
+}
+#endif

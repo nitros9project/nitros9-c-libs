@@ -105,4 +105,5 @@ _cgfx_gs_mouse(path_id path, MSRET *mpkt)
 		puls	y
 		bra 	os9err0
 	}
-}#endif
+}
+#endif
