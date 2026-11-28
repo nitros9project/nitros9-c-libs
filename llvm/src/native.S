@@ -26,6 +26,7 @@ __cmoc_syscall:
  ldb ,y+
  stb ,x+
  leau -1,u
+ cmpu #0 /* LEAU preserves Z; test the remaining byte count explicitly. */
  bne .Lcopy_regs
  clra
  clrb
@@ -107,6 +108,7 @@ __cmoc_snapshot:
  ldb ,y+
  stb ,x+
  leau -1,u
+ cmpu #0 /* LEAU preserves Z; test the remaining byte count explicitly. */
  bne .Lsnapshot_copy
  ldx 4,s
  leay 12,s
